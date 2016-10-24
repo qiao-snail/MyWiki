@@ -1,6 +1,9 @@
  # Html居中
+
  ## Css元素分为块级和行内两种，故居中也要分情况讨论。
+
  ### 行内元素
+ 
  *（行内元素包括：常见的有：a，strong，br, img, map,span, button, input, label, select, textarea。及： b, big, i, small, tt
 abbr, acronym, cite, code, dfn, em, kbd,  samp, var, bdo,  object, q, script, sub, sup）*
 
