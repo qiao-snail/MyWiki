@@ -23,7 +23,8 @@ abbr, acronym, cite, code, dfn, em, kbd,  samp, var, bdo,  object, q, script, su
         }
     </style>
 ```
-[CodePen](http://codepen.io/joesnail/pen/RGvJBJ)
+<p data-height="265" data-theme-id="dark" data-slug-hash="RGvJBJ" data-default-tab="html,result" data-user="joesnail" data-embed-version="2" data-pen-title="RGvJBJ" class="codepen">See the Pen <a href="http://codepen.io/joesnail/pen/RGvJBJ/">RGvJBJ</a> by joe (<a href="http://codepen.io/joesnail">@joesnail</a>) on <a href="http://codepen.io">CodePen</a>.</p>
+<script async src="https://production-assets.codepen.io/assets/embed/ei.js"></script>
 
 ***
 ### 块级元素
@@ -153,3 +154,6 @@ div{
 </style>
 ```
 [CodePen](http://codepen.io/joesnail/pen/xErJKP)
+
+
+ <script async src="http://assets.codepen.io/assets/embed/ei.js"></script>
