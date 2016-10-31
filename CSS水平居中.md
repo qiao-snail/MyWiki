@@ -1,4 +1,5 @@
  
+
 # HTML水平布局居中
 
 ## Css元素分为块级和行内两种，故居中也要分情况讨论。
@@ -23,9 +24,8 @@ abbr, acronym, cite, code, dfn, em, kbd,  samp, var, bdo,  object, q, script, su
         }
     </style>
 ```
-<p data-height="265" data-theme-id="dark" data-slug-hash="RGvJBJ" data-default-tab="html,result" data-user="joesnail" data-embed-version="2" data-pen-title="RGvJBJ" class="codepen">See the Pen <a href="http://codepen.io/joesnail/pen/RGvJBJ/">RGvJBJ</a> by joe (<a href="http://codepen.io/joesnail">@joesnail</a>) on <a href="http://codepen.io">CodePen</a>.</p>
-<script async src="https://production-assets.codepen.io/assets/embed/ei.js"></script>
-
+<iframe height='265' scrolling='no' title='RGvJBJ' src='http://codepen.io/joesnail/embed/RGvJBJ/?height=265&theme-id=dark&default-tab=html,result&embed-version=2' frameborder='no' allowtransparency='true' allowfullscreen='true' style='width: 100%;'>See the Pen <a href='http://codepen.io/joesnail/pen/RGvJBJ/'>RGvJBJ</a> by joe (<a href='http://codepen.io/joesnail'>@joesnail</a>) on <a href='http://codepen.io'>CodePen</a>.
+</iframe>
 ***
 ### 块级元素
 *（块级元素：常见的块级元素：div，table，ul，dl，form，h1，p。及：address，article，aside，audio，blockquote，canvas，dd
