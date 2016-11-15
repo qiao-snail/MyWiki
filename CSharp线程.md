@@ -332,3 +332,178 @@ class PriorityTest
 两种方法：
 如果是自己创建的线程，可以对该线程调用Join
 如果是在线程池上，可以使用wait handle
+
+### 线程优先级
+线程优先级属性决定它在操作系统活动线程中执行时间
+``` CSharp
+enum ThreadPriority { Lowest, BelowNormal, Normal, AboveNormal, Highest }
+```
+只有多个线程同时启动时，这个属性才起作用。
+
+提升线程优先级，并不能确保它的实际执行时间，因为它还受到进程优先级的干扰。
+``` CSharp
+using (Process p = Process.GetCurrentProcess())
+  p.PriorityClass = ProcessPriorityClass.High;
+```
+ProcessPriorityClass.High 是实际上一个仅次于最优的等级︰ 实时。将进程的优先级设置为RealTime,那么操作系统不会把CPU让给另一个进程。如果程序进入一个意外的无限循环，那么系统就会死机，为此，High通常是实时应用的最佳选择。
+
+### 处理异常
+
+try/catch/finally的块级作用据，会导致不能正确的捕获线程异常。
+``` Csharp
+public static void Main()
+{
+  try
+  {
+    new Thread (Go).Start();
+  }
+  catch (Exception ex)
+  {
+    // We'll never get here!
+    Console.WriteLine ("Exception!");
+  }
+}
+ 
+static void Go() { throw null; }   // Throws a NullReferenceException
+```
+要捕获异常，要在方法里捕获。
+``` CSharp
+public static void Main()
+{
+   new Thread (Go).Start();
+}
+ 
+static void Go()
+{
+  try
+  {
+    // ...
+    throw null;    // The NullReferenceException will get caught below
+    // ...
+  }
+  catch (Exception ex)
+  {
+    // Typically log the exception, and/or signal another thread
+    // that we've come unstuck
+    // ...
+  }
+}
+```
+### 线程池
+当启动一个线程时，就会消耗几百毫秒，和1MB内存。线程池通过共享和回收线程，允许在不影响性能的情况下启用多线程。
+启用线程池的方法：
+
+
+线程池线程注意点：
+1 线程池的线程不能设置名字（导致线程调试困难）。
+2 线程池的线程都是background线程
+3 阻塞一个线程池的线程，会导致延迟。
+4 可以随意设置线程池的优先级，在回到线程池时改线程就会被重置。
+
+通过Thread.CurrentThread.IsThreadPoolThread.可以查看该线程是否是线程池的线程。
+### ThradPool via TPL
+通过Task Parallel Library 的Task类可以很容易的使用线程池（Framework 4.0）,。
+使用非泛型的Task类，调用Task.Factory.StartNew,把委托传递给方法。
+``` CSharp
+static void Main()    // The Task class is in System.Threading.Tasks
+{
+  Task.Factory.StartNew (Go);
+}
+ 
+static void Go()
+{
+  Console.WriteLine ("Hello from the thread pool!");
+}
+```
+Task.Factory.StartNew 返回一个Task对象。调用wait方法来等待线程完成。
+当调用wait方法，未处理的异常就会在宿主线程上重新引发。
+
+泛型Task<TResult>是Task的子类。泛型方法允许获取在线程执行完后获取返回值。
+``` CSharp
+static void Main()
+{
+  // Start the task executing:
+  Task<string> task = Task.Factory.StartNew<string>
+    ( () => DownloadString ("http://www.linqpad.net") );
+ 
+  // We can do other work here and it will execute in parallel:
+  RunSomeOtherMethod();
+ 
+  // When we need the task's return value, we query its Result property:
+  // If it's still executing, the current thread will now block (wait)
+  // until the task finishes:
+  string result = task.Result;
+}
+ 
+static string DownloadString (string uri)
+{
+  using (var wc = new System.Net.WebClient())
+    return wc.DownloadString (uri);
+}
+```
+查询Result属性时，未处理的异常会再次引发AggregatgeException。否则，不引发。
+### ThradPool without TPL
+如果不能使用Task，那么可以使用TaskPool.QueueUserWorkItem和异步委托。区别是，异步委托可以让线程返回数据，也可以捕获调用方的异常。
+
+### QueueUserWorkItem
+``` CSharp
+static void Main()
+{
+  ThreadPool.QueueUserWorkItem (Go);
+  ThreadPool.QueueUserWorkItem (Go, 123);
+  Console.ReadLine();
+}
+ 
+static void Go (object data)   // data will be null with the first call.
+{
+  Console.WriteLine ("Hello from the thread pool! " + data);
+}
+```
+QueueUserWorkItem不能像Task那么在返回值中处理异常，所以必须要在目标代码里处理好异常。
+
+### 异步委托
+QueueUserWorkItem很难在线程结束后返回数据。异步委托可以很简单的解决这个问题。可以传递任意参数，未处理的异常也会重新引发，方便处理。
+使用方法：
+1.实例化委托匹配要并行运行的方法。
+2.调用委托的BeginInvoke方法，获取IAsyncResult类型的返回值。
+  Begininvoke立即返回给调用者，线程池的线程在工作时，你可以执行其他活动。
+3. 如果要获取返回值，调用委托的EndInvoke，把IAsyncResult参数传递进去。
+``` CSharp
+static void Main()
+{
+  Func<string, int> method = Work;
+  IAsyncResult cookie = method.BeginInvoke ("test", null, null);
+  //
+  // ... here's where we can do other work in parallel...
+  //
+  int result = method.EndInvoke (cookie);
+  Console.WriteLine ("String length is: " + result);
+}
+ 
+static int Work (string s) { return s.Length; }
+```  
+EndInvoke 做三件事。首先，它等待异步委托完成执行，如果现在还没有。第二，它接收返回值 （以及任何 ref 或 out 参数）。第三，它异常任何未处理的工人回调用线程。
+指定委托的回调函数
+``` CSharp
+static void Main()
+{
+  Func<string, int> method = Work;
+  method.BeginInvoke ("test", Done, method);
+  // ...
+  //
+}
+ 
+static int Work (string s) { return s.Length; }
+ 
+static void Done (IAsyncResult cookie)
+{
+  var target = (Func<string, int>) cookie.AsyncState;
+  int result = target.EndInvoke (cookie);
+  Console.WriteLine ("String length is: " + result);
+}
+```
+
+### 线程池优化
+在线程池中开启一个线程后，池管理器就会“注入”新的线程，以应付额外的并发的工作，直到池中线程数到最大值。池管理器如果判断该线程在一段时间内都是非活动的，那么线程池就会释放该线程，来提高吞吐量。
+可以设置线程池的最大线程数，同样也可以设置最小线程数。
+但是最小线程数，并不是说，一定要有几个线程工作。线程只需要按需创建。当我们需要线程的时候，会瞬间创建最小的线程数。
