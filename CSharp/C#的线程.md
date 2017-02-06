@@ -1,6 +1,6 @@
 # C#的线程（一）
 ## 初始线程
-线程和线程相互独立，线程可以和其他线程同时执行，C#可以通过多线程来实现同步执行代码，
+线程是进程中的基本执行单元，在进程入口执行的第一个线程被视为这个进程的主线程。线程和线程相对相互独立，线程可以和其他线程同时执行，C#可以通过多线程来实现同步执行代码，
 
 C#的客户端程序（Console，WPF，WinForms）是由CLR创建的单线程（主线程，且只创建一个线程）来启动。在该线程上可以创建其他线程。
 
@@ -16,7 +16,7 @@ class ThreadTest
     Thread t = new Thread (WriteY);          // 创建线程t
     t.Start();                               // 执行 WriteY()
  
-    // 同时执行主线程上的该的该方法
+    // 同时执行主线程上的该方法
     for (int i = 0; i < 1000; i++) Console.Write ("x");
   }
  
@@ -29,12 +29,12 @@ class ThreadTest
 //输出：
 //xxxxxxyyyyyyxxxxxyyyyyxxxxyyy......
 ```
-在主线程上创建了一个新的线程，该新线程执行WrWriteY方法，在调用t.Start()时，主线程继续执行，输出“x”。
+在主线程上创建了一个新的线程，该新线程执行WrWriteY方法，在调用t.Start()时，主线程并行，输出“x”。
 
 图：
 ![新线程](E:\MyItem\MyWiki\CSharp\NewThread.png)
 
-线程Start()之后，线程的IsAlive属性就为true，直到该线程结束（当线程传入的方法结束时，该线程就结束）。线程结束后，不可以重启该线程。
+线程Start()之后，线程的IsAlive属性就为true，直到该线程结束（当线程传入的方法结束时，该线程就结束）。线程结束后，不能重启该线程。
 
 CLR使每个线程都有自己的内存栈，所以每个线程的本地变量都相互独立。
 
@@ -149,8 +149,9 @@ class ThreadSafe
 当多个线程都在争取这个排它锁时，一个线程获取该锁，其他线程会处于blocked状态（该状态时不消耗cpu），等待另一个线程释放锁时，捕获该锁。这就保证了一次
 只有一个线程执行该代码。
 
+---
 ## Join和Sleep
-Join可以实现暂停另一个线程，直到调用Join方法的线程结束。
+Join可以实现暂停另一个线程，直到调用Join的线程结束。
 ``` CSharp
 static void Main()
 {
@@ -262,7 +263,7 @@ static void Print (object messageObj)
 ``` CSharp
 public delegate void ParameterizedThreadStart (object obj);
 ```
-Lambda表达式和变量
+
 Lambda简洁高效，但是在捕获变量的时候要注意，捕获的变量是否共享。
 如：
 ``` CSharp
@@ -272,9 +273,9 @@ for (int i = 0; i < 10; i++)
 //输出：
 //0223447899
 ```
-因为i是共享变量，在输出的过程中，i的值会发生变化。
+因为每次循环中的i都是同一个i，是共享变量，在输出的过程中，i的值会发生变化。
 
-解决方法就是-临时变量
+解决方法-临时变量
 ``` CSharp
 for (int i = 0; i < 10; i++)
 {
@@ -309,7 +310,7 @@ public static void Main()
  
 static void Go() { throw null; }   //抛出 Null异常
 ```
-此时并不能在Main方法里捕获线程Go方法的异常，如果是线程的异常可以捕获。
+此时并不能在Main方法里捕获线程Go方法的异常，如果是Thread的异常可以捕获。
 
 正确捕获方式：
 ``` CSharp
@@ -362,9 +363,37 @@ static void Main() 
 static void Go()
 {
   Console.WriteLine ("Hello from the thread pool!");
+}
 
  ```
 Task.Factory.StartNew 返回一个Task对象。可以调用该Task对象的Wait来等待该线程结束。
+### Task构造函数
+给Task构造函数传递Action委托，或对应的方法，调用start方法，启动任务
+``` CSharp
+static void Main() 
+{
+  Task t=new Task(Go);
+  t.Start();
+}
+ 
+static void Go()
+{
+  Console.WriteLine ("Hello from the thread pool!");
+}
+```
+### Task.Run
+直接调用Task.Run传入方法，执行。
+``` CSharp
+static void Main() 
+{
+  Task.Run(new Action(Go));
+}
+ 
+static void Go()
+{
+  Console.WriteLine ("Hello from the thread pool!");
+}
+```
 
 Task<TResult>泛型允许有返回值。
 
@@ -441,7 +470,7 @@ static void Main()
   Func<string, int> method = Work;
   method.BeginInvoke ("test", Done, method);
   // ...
-  //
+  //并行其他事情
 }
  
 static int Work (string s) { return s.Length; }
