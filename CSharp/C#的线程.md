@@ -497,3 +497,6 @@ static void Done (IAsyncResult cookie)
 }
 ```
 ---
+参考：
+* http://www.albahari.com/threading/
+* 《C#并发编程》
