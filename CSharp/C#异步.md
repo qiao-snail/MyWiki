@@ -1,15 +1,16 @@
 # C#之异步
-C#的异步可以分为三个模式
+
+C#实现异步的四种方式：
 
 1. 异步模式BeginXXX,EndXXX
 2. 事件异步xxxAsync，xxxCompleted
 3. 基于任务Task的异步
 4. async,await关键字异步
-*异步模式和事件异步的自定义实现比较复杂，没有Task容易实现和理解。所以意义不大，只是简单做一下介绍。*
 
+----
 ## 异步模式
 
-异步模式是调用Beginxxx方法，返回一个IAsyncResult类型的值，在回调函数里调用Endxxxx（IAsyncResult）获取结果值。
+异步模式是调用`Beginxxx`方法，返回一个`IAsyncResult`类型的值，在回调函数里调用`Endxxxx（IAsyncResult）`获取结果值。
 
 异步模式中最常见的是委托的异步。
 
@@ -28,9 +29,9 @@ C#的异步可以分为三个模式
 //hello
 //hello end
 ```
-BeginInvoke方法的第一个参数表示委托的输入参数。
+`BeginInvoke`方法的第一个参数表示委托的输入参数。
 
-第二个参数表示IAsyncResult类型输入参数的回调函数，其实也是个委托。
+第二个参数表示`IAsyncResult`类型输入参数的回调函数，其实也是个委托。
 
 第三个参数是个状态值。
 
@@ -39,9 +40,9 @@ BeginInvoke方法的第一个参数表示委托的输入参数。
 
 ## 事件异步
 
-事件异步有一个xxxAsync方法，和对应该方法的 xxxCompleted事件。
+事件异步有一个`xxxAsync`方法，和对应该方法的 `xxxCompleted`事件。
 
-最常用的比如backgroundworker和progressbar结合
+最常用的比如`backgroundworker`和`progressbar`结合
 
 ```CSharp
 
@@ -107,7 +108,7 @@ BeginInvoke方法的第一个参数表示委托的输入参数。
 任务的执行默认是由任务调度器来实现的(*任务调用器使这些任务并行执行*)。任务的执行和线程不是一一对应的。有可能会是几个任务在同一个线程上运行，充分利用了线程，避免一些短时间的操作单独跑在一个线程里。所以任务更适合CPU密集型操作。
 
 
-Task 启动
+#### Task 启动
 
 任务可以赋值立即运行，也可以先由构造函数赋值，之后再调用。
 ```CSharp
@@ -130,7 +131,7 @@ Task 启动
  t3.RunSynchronously();//任务同步执行
 ```
 
-Task 等待任务结果，处理结果
+#### Task 等待任务结果，处理结果
 ```CSharp
  Task t1 = Task.Run(() =>
             {
@@ -169,7 +170,7 @@ t2.GetAwaiter().OnCompleted(() =>
 
 ```
 
-Task 任务取消
+#### Task 任务取消
 ```CSharp
 //实例化一个取消实例
 var source = new CancellationTokenSource();
@@ -195,7 +196,7 @@ source.Cancel();
 Console.WriteLine(t1.Status);
             
 ```
-Task 返回值
+#### Task 返回值
 ```CSharp
 Task<string> t1 = Task.Run(() => TaskMethod("hello"));
 t1.Wait();
@@ -209,15 +210,12 @@ public string TaskMethod(string str)
 ```
 **Task异步操作，需要注意的一点就是调用Waitxxx方法，会阻塞调用线程。**
 
-
+----
 ## async await 异步
 
-首先要明确一点的就是async await 不会创建线程。
+首先要明确一点的就是`async` `await` 不会创建线程。并且他们是一对关键字，必须成对的出现。
 
-async和await是一对关键字，必须成对的出现，异步方法要用async修饰，表示这是一个异步的方法，方法中的await，会阻塞该异步方法的运行，并立即把线程返回给调用者，包含至少一个 await 表达式，该表达式标记一个点，我们可以成为悬挂点，在该点上，直到等待的异步操作完成，之后的方法才能继续执行。 与此同时，该方法将挂起，并将控制权返回到方法的调用方。
-如果await没有创建新的线程，那么一个异步操作就是在调用线程的时间片上执行，否则就是在另一个线程上执行。
-异步方法返回类型必须是Task<T>类型，如果没有返回值，那么方法返回类型是Task
-
+如果`await`的表达式没有创建新的线程，那么一个异步操作就是在调用线程的时间片上执行，否则就是在另一个线程上执行。
 
 ```CSharp
 async Task MethodAsync()
@@ -227,16 +225,16 @@ async Task MethodAsync()
     Console.WriteLine("异步执行结束");
 }
 ```
-一个异步方法必须有async修饰，且方法名以Async结尾。异步方法体至少包含一个await表达式。且异步方法的返回值必须是Task或者Task<T>。即如果方法没有返回值那就用Task表示，如果有一个string类型的返回值，就用Task<string>修饰。
+一个异步方法必须有`async`修饰，且方法名以Async结尾。异步方法体至少包含一个`await`表达式。`await` 可以看作是一个挂起异步方法的一个点，且同时把控制权返回给调用者。异步方法的返回值必须是`Task`或者`Task<T>`。即如果方法没有返回值那就用Task表示，如果有一个string类型的返回值，就用`Task<string>`修饰。
 
 异步方法执行流程：
 1.主线程调用MethodAsync方法，并等待方法执行结束
 2.异步方法开始执行，输出“异步执行”
 3.异步方法执行到await关键字，此时MethodAsync方法挂起，等待await表达式执行完毕，同时将控制权返回给调用方主线程，主线程继续执行。
-4.执行Task.Delay方法，MethodAsync挂起，等待Task.Delay结束
-5.Task.Delay结束，await表达式结束，MehtodAsync执行await表达式之后的语句。
+4.执行Task.Delay方法，MethodAsync挂起，等待`Task.Delay`结束
+5.`Task.Delay`结束，`await`表达式结束，MehtodAsync执行await表达式之后的语句。
 
-我们可能想当然的认为Task.Delay会阻塞执行线程，就跟Thread.Sleep一样。其实他们是不一样的。Task.Delay创建一个将在设置时间后执行的任务。就相当于一个定时器，多少时间后再执行操作。不会阻塞执行线程。当然如果你在异步方法里调用Thread.Sleep，这时会阻塞调用线程-主线程。同时也表明await并没有创建一个新的线程。
+我们可能想当然的认为`Task.Delay`会阻塞执行线程，就跟`Thread.Sleep`一样。其实他们是不一样的。`Task.Delay`创建一个将在设置时间后执行的任务。就相当于一个定时器，多少时间后再执行操作。不会阻塞执行线程。当然如果你在异步方法里调用`Thread.Sleep`，这时会阻塞调用线程-主线程。同时也表明`await`并没有创建一个新的线程。
 
 ```CSharp
 async Task Method2Async()
@@ -255,8 +253,8 @@ async Task Method2Async()
 //await执行...12
 //await执行结束...9
 ```
-上面的异步方法，await表达式在另一个线程中执行，这是因为Task创建了一个线程池线程，而不是await创建了线程。
-async await更加简便的创建异步方法。
+上面的异步方法，`await`表达式在另一个线程中执行，这是因为`Task`创建了一个线程池线程，而不是`await`创建了线程。
+`async` `await`更加简便的创建异步方法。
 
 https://msdn.microsoft.com/zh-cn/library/system.threading.tasks.task(v=vs.110).aspx
 
