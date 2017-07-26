@@ -5,6 +5,12 @@
 
 异步可以分为CPU异步和IO异步。他们两者的区别就是异步和多线程的区别。异步在CPU操作中是要有线程的。在IO操作中是不需要线程的，硬件直接和内存操作。
 
+为什么要使用异步：
+处理更多的服务器请求，通过在等待输入/输出请求返回时，让线程处理更多的请求。
+通过在等待i/o请求和将长时间运行的工作转移到其他CPU核心的情况下，可以使UI在UI交互中更有响应性。
+许多新的。净api是异步的。
+在。NET中编写异步代码是很容易的。
+
 C#实现异步的四种方式：
 
 1. 异步模式BeginXXX,EndXXX
@@ -112,6 +118,7 @@ C#实现异步的四种方式：
 
 任务的执行默认是由任务调度器来实现的(*任务调用器使这些任务并行执行*)。任务的执行和线程不是一一对应的。有可能会是几个任务在同一个线程上运行，充分利用了线程，避免一些短时间的操作单独跑在一个线程里。所以任务更适合CPU密集型操作。
 
+任务是用于实现所谓的并行的承诺模型的构造。简而言之，他们为你提供了一个“承诺”，即工作将在稍后完成，让你用一个干净的API与承诺进行协调。重要的是，将任务作为异步发生的工作的抽象，而不是对线程的抽象
 
 #### Task 启动
 
@@ -264,3 +271,7 @@ async Task Method2Async()
 https://msdn.microsoft.com/zh-cn/library/system.threading.tasks.task(v=vs.110).aspx
 
 https://msdn.microsoft.com/zh-cn/library/dd997423.aspx
+
+https://docs.microsoft.com/en-us/dotnet/standard/async-in-depth
+
+https://docs.microsoft.com/en-us/dotnet/standard/parallel-programming/task-based-asynchronous-programming
