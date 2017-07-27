@@ -1,15 +1,9 @@
 # C#之异步
-异步是相对于同步而言。异步和多线程两者不能划为等号。异步简单而言就是一个人两双手可以同时做两件以上不同的事情。多线程是指多个人做不同或相同的事情。
+异步是相对于同步而言。跟多线程不能同一而论。异步简单而言好比一个人两双手可以同时做两件以上不同的事情。多线程是指多个人做不同或相同的事情。
 
 异步跟多线程有什么关系？
 
-异步可以分为CPU异步和IO异步。他们两者的区别就是异步和多线程的区别。异步在CPU操作中是要有线程的。在IO操作中是不需要线程的，硬件直接和内存操作。
-
-为什么要使用异步：
-处理更多的服务器请求，通过在等待输入/输出请求返回时，让线程处理更多的请求。
-通过在等待i/o请求和将长时间运行的工作转移到其他CPU核心的情况下，可以使UI在UI交互中更有响应性。
-许多新的。净api是异步的。
-在。NET中编写异步代码是很容易的。
+异步可以分为CPU异步和IO异步。他们两者的区别就是异步和多线程的区别。异步在CPU操作中是必须要跑在线程上的，一般情况下这时我们都会新开一个线程执行这个异步操作。但在IO操作中是不需要线程的，硬件直接和内存操作。
 
 C#实现异步的四种方式：
 
@@ -117,8 +111,6 @@ C#实现异步的四种方式：
 * 实现了随时查看任务状态
 
 任务的执行默认是由任务调度器来实现的(*任务调用器使这些任务并行执行*)。任务的执行和线程不是一一对应的。有可能会是几个任务在同一个线程上运行，充分利用了线程，避免一些短时间的操作单独跑在一个线程里。所以任务更适合CPU密集型操作。
-
-任务是用于实现所谓的并行的承诺模型的构造。简而言之，他们为你提供了一个“承诺”，即工作将在稍后完成，让你用一个干净的API与承诺进行协调。重要的是，将任务作为异步发生的工作的抽象，而不是对线程的抽象
 
 #### Task 启动
 
@@ -237,16 +229,19 @@ async Task MethodAsync()
     Console.WriteLine("异步执行结束");
 }
 ```
-一个异步方法必须有`async`修饰，且方法名以Async结尾。异步方法体至少包含一个`await`表达式。`await` 可以看作是一个挂起异步方法的一个点，且同时把控制权返回给调用者。异步方法的返回值必须是`Task`或者`Task<T>`。即如果方法没有返回值那就用Task表示，如果有一个string类型的返回值，就用`Task<string>`修饰。
+一个异步方法必须有`async`修饰，且方法名以Async结尾。异步方法体至少包含一个`await`表达式。`await` 可以看作是一个挂起异步方法的一个点，且同时把控制权返回给调用者。异步方法的返回值必须是`Task`或者`Task<T>`。即如果方法没有返回值那就用Task表示，如果有一个string类型的返回值，就用Task泛型`Task<string>`修饰。
 
 异步方法执行流程：
-1.主线程调用MethodAsync方法，并等待方法执行结束
-2.异步方法开始执行，输出“异步执行”
-3.异步方法执行到await关键字，此时MethodAsync方法挂起，等待await表达式执行完毕，同时将控制权返回给调用方主线程，主线程继续执行。
-4.执行Task.Delay方法，MethodAsync挂起，等待`Task.Delay`结束
-5.`Task.Delay`结束，`await`表达式结束，MehtodAsync执行await表达式之后的语句。
 
-我们可能想当然的认为`Task.Delay`会阻塞执行线程，就跟`Thread.Sleep`一样。其实他们是不一样的。`Task.Delay`创建一个将在设置时间后执行的任务。就相当于一个定时器，多少时间后再执行操作。不会阻塞执行线程。当然如果你在异步方法里调用`Thread.Sleep`，这时会阻塞调用线程-主线程。同时也表明`await`并没有创建一个新的线程。
+1. 主线程调用MethodAsync方法，并等待方法执行结束
+2. 异步方法开始执行，输出“异步执行”
+3. 异步方法执行到await关键字，此时MethodAsync方法挂起，等待await表达式执行完毕，同时将控制权返回给调用方主线程，主线程继续执行。
+4. 执行Task.Delay方法，同时主线程继续执行之后的方法。
+5. `Task.Delay`结束，`await`表达式结束，MehtodAsync执行await表达式之后的语句，输出“异步执行结束”。
+
+我们可能想当然的认为`Task.Delay`会阻塞执行线程，就跟`Thread.Sleep`一样。其实他们是不一样的。`Task.Delay`创建一个将在设置时间后执行的任务。就相当于一个定时器，多少时间后再执行操作。不会阻塞执行线程。
+
+当我们在异步线程中调用Sleep的时候，只会阻塞异步线程。不会阻塞到主线程。
 
 ```CSharp
 async Task Method2Async()
@@ -256,17 +251,19 @@ async Task Method2Async()
     {
         Console.WriteLine("await执行..." + Thread.CurrentThread.ManagedThreadId);
         Thread.Sleep(5000);
+        Console.WriteLine("await执行结束..." + Thread.CurrentThread.ManagedThreadId);
+        
     });
-    Console.WriteLine("await执行结束..."+ Thread.CurrentThread.ManagedThreadId);
+    Console.WriteLine("await之后执行..."+ Thread.CurrentThread.ManagedThreadId);
 }
 
 //输出：
 //await执行前...9
 //await执行...12
-//await执行结束...9
+//await之后执行...9
+//await执行结束...12
 ```
-上面的异步方法，`await`表达式在另一个线程中执行，这是因为`Task`创建了一个线程池线程，而不是`await`创建了线程。
-`async` `await`更加简便的创建异步方法。
+上面的异步方法，`Task`创建了一个线程池线程，Thread.Sleep执行在线程池线程中。
 
 https://msdn.microsoft.com/zh-cn/library/system.threading.tasks.task(v=vs.110).aspx
 
