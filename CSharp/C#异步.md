@@ -1,9 +1,9 @@
 # C#之异步
-异步是相对于同步而言。跟多线程不能同一而论。异步简单而言好比一个人两双手可以同时做两件以上不同的事情。多线程是指多个人做不同或相同的事情。
+异步是相对于同步而言。跟多线程不能同一而论。异步简单而言好比一个人两双手可以同时做两件以上不同的事情。多线程好比多个人做不同或相同的事情。
 
 异步跟多线程有什么关系？
 
-异步可以分为CPU异步和IO异步。他们两者的区别就是异步和多线程的区别。异步在CPU操作中是必须要跑在线程上的，一般情况下这时我们都会新开一个线程执行这个异步操作。但在IO操作中是不需要线程的，硬件直接和内存操作。
+异步可以分为CPU异步和IO异步。他们两者的区别体现了异步和多线程的区别。异步在CPU操作中是必须要跑在线程上的，一般情况下这时我们都会新开一个线程执行这个异步操作。但在IO操作中是不需要线程的，硬件直接和内存操作。
 
 C#实现异步的四种方式：
 
@@ -19,7 +19,7 @@ C#实现异步的四种方式：
 
 异步模式中最常见的是委托的异步。
 
-声明一个string类型输入参数和string类型返回值的委托。调用委托的BeginInvoke方法，来异步执行该委托。
+如：声明一个string类型输入参数和string类型返回值的委托。调用委托的BeginInvoke方法，来异步执行该委托。
 ```CSharp
  Func<string, string> func = (string str) =>
              {
@@ -47,7 +47,7 @@ C#实现异步的四种方式：
 
 事件异步有一个`xxxAsync`方法，和对应该方法的 `xxxCompleted`事件。
 
-最常用的比如`backgroundworker`和`progressbar`结合
+如： `backgroundworker`和`progressbar`结合
 
 ```CSharp
 
@@ -146,7 +146,7 @@ C#实现异步的四种方式：
                 Console.WriteLine("Task启动...");
             });
 
- //调用WaitAll()等待任务执行完成 ,Waitxxx会阻塞调用线程，这时异步也没有意义了          
+ //调用WaitAll() ，会阻塞调用线程，等待任务执行完成 ,这时异步也没有意义了          
  Task.WaitAll(new Task[] { t1, t2 });
  Console.WriteLine("Task完成...");
 
@@ -265,10 +265,8 @@ async Task Method2Async()
 ```
 上面的异步方法，`Task`创建了一个线程池线程，Thread.Sleep执行在线程池线程中。
 
-https://msdn.microsoft.com/zh-cn/library/system.threading.tasks.task(v=vs.110).aspx
+---
+参考：
+* [Async](https://docs.microsoft.com/en-us/dotnet/standard/async-in-depth)
 
-https://msdn.microsoft.com/zh-cn/library/dd997423.aspx
-
-https://docs.microsoft.com/en-us/dotnet/standard/async-in-depth
-
-https://docs.microsoft.com/en-us/dotnet/standard/parallel-programming/task-based-asynchronous-programming
+* [Task](https://docs.microsoft.com/en-us/dotnet/standard/parallel-programming/task-based-asynchronous-programming)
