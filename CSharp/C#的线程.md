@@ -234,69 +234,6 @@ static void Main()
 }
 ```
 ---
-## 线程传递参数
-最简单的就是在lambda表达式直接传入参数。
-``` CSharp
-static void Main()
-{
-  Thread t = new Thread ( () => Print ("Hello from t!") );
-  t.Start();
-}
- 
-static void Print (string message) 
-{
-  Console.WriteLine (message);
-}
-```
-或者在调用Start方法时传入参数
-``` CSharp
-static void Main()
-{
-  Thread t = new Thread (Print);
-  t.Start ("Hello from t!");
-}
- 
-static void Print (object messageObj)
-{
-  string message = (string) messageObj;   
-  Console.WriteLine (message);
-}
-```
-此时传给Thread的构造函数是有一个参数的void类型方法。
-因为Thread的构造函数也可以传递如下委托：
-``` CSharp
-public delegate void ParameterizedThreadStart (object obj);
-```
-
-Lambda简洁高效，但是在捕获变量的时候要注意，捕获的变量是否共享。
-如：
-``` CSharp
-for (int i = 0; i < 10; i++)
-  new Thread (() => Console.Write (i)).Start();
-
-//输出：
-//0223447899
-```
-因为每次循环中的i都是同一个i，是共享变量，在输出的过程中，i的值会发生变化。
-
-解决方法-临时变量
-``` CSharp
-for (int i = 0; i < 10; i++)
-{
-  int temp = i;
-  new Thread (() => Console.Write (temp)).Start();
-}
-```
-这时每个线程都指向新的temp；在该线程中temp不受其他线程影响。
-
-总结：
-
-Thread构造函数传递方法有两种方式：
-``` CSharp
-public delegate void ThreadStart();
-public delegate void ParameterizedThreadStart (object obj);
-```
----
 ## Foreground线程和Background线程
 默认情况下创建的线程都是Foreground，只要有一个Foregournd线程在执行，应用程序就不会关闭。
 Background线程则不是。一旦Foreground线程执行完，应用程序结束，background就会强制结束。
@@ -368,6 +305,8 @@ static void Go()
 **TPL**
 
  Framework4.0下可以使用Task来创建线程池线程。调用Task.Factory.StartNew(),传递一个委托
+ * Task.Factory.StartNew
+
  ``` CSharp
 static void Main() 
 {
@@ -380,8 +319,9 @@ static void Go()
 }
 
  ```
-Task.Factory.StartNew 返回一个Task对象。可以调用该Task对象的Wait来等待该线程结束。
-### Task构造函数
+Task.Factory.StartNew 返回一个Task对象。可以调用该Task对象的Wait来等待该线程结束,调用Wait时会阻塞调用者的线程。
+
+* Task构造函数
 给Task构造函数传递Action委托，或对应的方法，调用start方法，启动任务
 ``` CSharp
 static void Main() 
@@ -395,12 +335,12 @@ static void Go()
   Console.WriteLine ("Hello from the thread pool!");
 }
 ```
-### Task.Run
+* Task.Run
 直接调用Task.Run传入方法，执行。
 ``` CSharp
 static void Main() 
 {
-  Task.Run(new Action(Go));
+  Task.Run(() => Go());
 }
  
 static void Go()
@@ -408,30 +348,7 @@ static void Go()
   Console.WriteLine ("Hello from the thread pool!");
 }
 ```
-
-Task<TResult>泛型允许有返回值。
-
-如：
-``` CSharp
-static void Main()
-{
-  // 创建Task并执行
-  Task<string> task = Task.Factory.StartNew<string>
-    ( () => DownloadString ("http://www.linqpad.net") );
- 
-  // 同时执行其他方法
-  RunSomeOtherMethod();
- 
- //主线程会被阻塞直到获取到该返回值
-  string result = task.Result;
-}
- 
-static string DownloadString (string uri)
-{
-  using (var wc = new System.Net.WebClient())
-    return wc.DownloadString (uri);
-}
-```
+---
 
 ### QueueUserWorkItem
 QueueUserWorkItem没有返回值。使用 QueueUserWorkItem,只需传递相应委托的方法就行。
@@ -450,6 +367,8 @@ static void Go (object data) 
   Console.WriteLine ("Hello from the thread pool! " + data);
 }
 ```
+---
+
 ### 委托异步
 委托异步可以返回任意类型个数的值。
 使用委托异步的方式：
@@ -472,12 +391,7 @@ static void Main()
  
 static int Work (string s) { return s.Length; }
 ```
-EndInvoke做了三件事情：
-1. 等待委托异步的结束。
-2. 获取返回值
-3. 抛出未处理异常给调用线程
-
-推荐使用回调函数来简化委托的异步调用,回调函数参数为IAsyncResult类型
+使用回调函数来简化委托的异步调用,回调函数参数为IAsyncResult类型
 ``` CSharp
 static void Main()
 {
@@ -496,6 +410,145 @@ static void Done (IAsyncResult cookie)
   Console.WriteLine ("String length is: " + result);
 }
 ```
+使用匿名方法
+``` CSharp
+ Func<string, int> f = s => { return s.Length; };
+  f.BeginInvoke("hello", arg =>
+  {
+      var target = (Func<string, int>)arg.AsyncState;
+      int result = target.EndInvoke(arg);
+      Console.WriteLine("String length is: " + result);
+  }, f);
+```
+---
+
+## 线程传参和线程返回值
+### Thread
+
+Thread构造函数传递方法有两种方式：
+``` CSharp
+public delegate void ThreadStart();
+public delegate void ParameterizedThreadStart (object obj);
+```
+**所以Thread可以传递零个或一个参数，但是没有返回值。**
+
+* 使用lambda表达式直接传入参数。
+``` CSharp
+static void Main()
+{
+  Thread t = new Thread ( () => Print ("Hello from t!") );
+  t.Start();
+}
+ 
+static void Print (string message) 
+{
+  Console.WriteLine (message);
+}
+```
+* 调用Start方法时传入参数
+``` CSharp
+static void Main()
+{
+  Thread t = new Thread (Print);
+  t.Start ("Hello from t!");
+}
+ 
+static void Print (object messageObj)
+{
+  string message = (string) messageObj;   
+  Console.WriteLine (message);
+}
+```
+
+Lambda简洁高效，但是在捕获变量的时候要注意，捕获的变量是否共享。
+如：
+``` CSharp
+for (int i = 0; i < 10; i++)
+  new Thread (() => Console.Write (i)).Start();
+
+//输出：
+//0223447899
+```
+因为每次循环中的i都是同一个i，是共享变量，在输出的过程中，i的值会发生变化。
+
+解决方法-局部域变量
+
+``` CSharp
+for (int i = 0; i < 10; i++)
+{
+  int temp = i;
+  new Thread (() => Console.Write (temp)).Start();
+}
+```
+
+这时每个线程都指向新的域变量temp（此时每个线程都有属于自己的花括号的域变量）在该线程中temp不受其他线程影响。
+
+---
+### 委托
+委托可以有任意个传入和输出参数。以Action，Func来举例。
+* Action 有零个或多个传入参数，但是没有返回值。
+* Func 有零个或多个传入参数，和一个返回值。
+
+```CSharp
+  Func<string, int> method = Work;
+  IAsyncResult cookie = method.BeginInvoke("test", null, null);
+  //
+  // ... 此时可以同步处理其他事情
+  //
+  int result = method.EndInvoke(cookie);
+  Console.WriteLine("String length is: " + result);        
+
+  int Work(string s) { return s.Length; }
+```
+使用回调函数获取返回值
+
+``` CSharp
+static void Main()
+{
+  Func<string, int> method = Work;
+  method.BeginInvoke ("test", Done, null);
+  // ...
+  //并行其他事情
+}
+ 
+static int Work (string s) { return s.Length; }
+ 
+static void Done (IAsyncResult cookie)
+{
+  var target = (Func<string, int>) cookie.AsyncState;
+  int result = target.EndInvoke (cookie);
+  Console.WriteLine ("String length is: " + result);
+}
+```
+EndInvoke做了三件事情：
+1. 等待委托异步的结束。
+2. 获取返回值。
+3. 抛出未处理异常给调用线程。
+
+---
+### Task
+Task<TResult>泛型允许有返回值。
+
+如：
+``` CSharp
+static void Main()
+{
+  // 创建Task并执行
+  Task<string> task = Task.Factory.StartNew<string>
+    ( () => DownloadString ("http://www.baidu.com") ); 
+  // 同时执行其他方法
+  Console.WriteLine("begin");
+  //等待获取返回值，并且不会阻塞主线程
+  Console.WriteLine(task.Result);
+  Console.WriteLine("end");
+} 
+static string DownloadString (string uri)
+{
+  using (var wc = new System.Net.WebClient())
+    return wc.DownloadString (uri);
+}
+
+``` 
 ---
 参考：
 * http://www.albahari.com/threading/
