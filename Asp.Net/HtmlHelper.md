@@ -4,12 +4,32 @@ HtmlHelper是一个返回Html字符串的方法。返回的字符串可以是任
 
 你也可以自定义HtmlHelper方法，返回一些复杂的html，来展示数据。
 
+## Razor编码
+首先需要认识了解一下Razor的编码
+
+**在Razor中返回类型为`IHtmlString`的都会被编码成html，其他都是string字符串。**
+
+```CSharp
+ string msgStr = "this is an html element: <input>";
+ ViewBag.Msg = msgStr;
+ ViewBag.Msg1 = new MvcHtmlString(msgStr);
+```
+Razor:
+
+![](imgs/razor.png)
+
+* Html.Encode()返回类型为string。
+* Html.Raw()返回类型为IHtmlString。
+* MvcHtmlString.Create返回类型为继承自IHtmlString的MvcHtmlStrin。
+* ViewBag是动态类型，Controller里ViewBag是什么类型，在Razor对应就是何种类型。
+---
+
 简单总结下HtmlHelper的几种扩展方法。
 
 ## 1. 视图中的Helper方法
 
 在razor页面中使用@helper创建一个自定义的方法，该方法只能用在当前razor页面中。
-```CSharp
+``` CSharp
 @helper ListingItems(string[] items)
     {
     <ol>
