@@ -68,7 +68,9 @@ public void AddTwoPostiveNumberTest()
 
 
 现在，您可以使用CodeLens来验证实际方法的状态以及测试方法的状态，如下图所示。
+
 ![测试截图](imgs/image10.png) 
+
 ![测试截图](imgs/image11.png)
 
 希望这篇文章能帮助到你。
