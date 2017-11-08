@@ -214,3 +214,11 @@ $('form input[type=button]').click(function () {
 ### Ajax数据验证
 
 ajax翻页
+
+
+在Asp.Net MVC中还包含一组Ajax辅助方法。可以用来创建表单和指向控制器操作的链接，不同的是他们时异步进行的。当使用这个辅助方法时，不用编写任何脚本代码来实现程序的异步。该辅助方法依赖于非侵入式mvc的jquery扩展。如果使用这些辅助方法时，需要引入脚本jquery.unbotrusive-ajax.js
+
+在razor试图中，Ajax辅助方法，可以通过Ajax属性访问。
+```CSharp
+@Ajax.ActionLink("Click here","ActionName",null,new AjaxOptions{UpdateTargetId="",InsertionModel=InsertionModel.Replace,HttpMethod="get“}，new{@class="btn"})
+```
