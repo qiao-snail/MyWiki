@@ -549,12 +549,4 @@ public JsonResult CheckUserName(string Name)
     return Json(result, JsonRequestBehavior.AllowGet);
 }
 ```
-
-
-
-
-
-在razor试图中，Ajax辅助方法，可以通过Ajax属性访问。
-```CSharp
-@Ajax.ActionLink("Click here","ActionName",null,new AjaxOptions{UpdateTargetId="",InsertionModel=InsertionModel.Replace,HttpMethod="get“}，new{@class="btn"})
-```
+---
