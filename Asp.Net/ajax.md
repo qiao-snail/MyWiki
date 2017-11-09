@@ -205,13 +205,215 @@ $('form input[type=button]').click(function () {
 
 绝大部分情况下，Asp.Net MVC会把部分渲染和其他请求同等对待---请求被路由到指定控制器，控制器执行特定的业务逻辑。我们可以在控制器中使用Request.IsAjax来区别是否是ajax请求。
 
+```CSharp
+//Main View:
+@{
+    ViewBag.Title = "主页面";
+}
+<h2>主页面</h2>
+<p>列表详细信息</p>
+<div id="partialDiv"></div>
+<script>
+    $('#partialDiv').load('@Url.Action("ListPage", "MyAjax")')
+</script>
+
+//部分页面
+@{
+    ViewBag.Title = "ListPage";
+}
+@model IList<WebApp.Models.PersonViewModel>
+<h2>分布页</h2>
+<table class="table table-striped">
+    <thead>
+        @{ WebApp.Models.PersonViewModel p = null;}
+        <tr>
+            <th>@Html.LabelFor(m => @p.Email)</th>
+            <th>@Html.LabelFor(m => @p.Name)</th>
+            <th>@Html.LabelFor(m => @p.Home)</th>
+            <th>@Html.LabelFor(m => @p.IsMarried)</th>
+            <th>@Html.LabelFor(m => @p.Height)</th>
+            <th>@Html.LabelFor(m => @p.PhoneNum)</th>
+            @*也可以使用DisplayNameFor来显示表头*@
+            @*<th>@Html.DisplayNameFor(m => Model[0].Email)</th>
+            <th>@Html.DisplayNameFor(m => Model[0].Name)</th>
+            <th>@Html.DisplayNameFor(m => Model[0].IsMarried)</th>
+            <th>@Html.DisplayNameFor(m => Model[0].Height)</th>
+            <th>@Html.DisplayNameFor(m => Model[0].PhoneNum)</th>*@
+        </tr>
+
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Email</td>
+                <td>@item.Name</td>
+                <td>@item.Home</td>
+                <td>@item.IsMarried</td>
+                <td>@item.Height</td>
+                <td>@item.PhoneNum</td>
+            </tr>
+        }
+    </tbody>
+</table>
 
 
+//Controller 
+ public class MyAjaxController : Controller
+ {
+     //主页面
+      public ActionResult MainPage()
+        {
 
+            return View();
+        }
+        //分布页面  
+        public ActionResult ListPage()
+        {
+            IList<PersonViewModel> persons = new List<PersonViewModel>();
+            for (int i = 0; i < 10; i++)
+            {
+                persons.Add(new PersonViewModel() { Email = "email" + i, Name = "name", IsMarried = false, PhoneNum = "1234" + i, Home = CityEnum.BJ, Height = i });
+            }
+            if (Request.IsAjaxRequest())
+            {
+                return PartialView(persons);
+            }
+
+            return View(persons);
+        }
+ }
+```
+**Ajax.ActionLink()**
+
+Ajax.ActionLink()辅助方法，异步请求加载页面。
+```CSharp
+//Main view 主页面
+@{
+    ViewBag.Title = "MainPage";
+}
+<h2>主页面</h2>
+<p>列表详细信息</p>
+@Ajax.ActionLink("加载详细列表", "ListPage", new AjaxOptions { UpdateTargetId = "partialDiv", InsertionMode = InsertionMode.Replace, HttpMethod = "Get" })
+<div id="partialDiv"></div>
+
+<script>
+    //$('#partialDiv').load('@Url.Action("ListPage", "MyAjax")')
+</script>
+```
+Ajax提供了多个属性给我们使用，免去了不少js代码。
+|名称|说明|
+|----|----|
+|Confirm|  获取或设置在提交请求之前显示在确认窗口中的消息。|
+|HttpMethod| 获取或设置 HTTP 请求方法（“Get”或“Post”）。 |
+|InsertionModel|获取或设置指定如何将响应插入目标 DOM 元素的模式。插入模式（“InsertAfter”、“InsertBefore”或“Replace”）。 默认值为“Replace”。   |
+|LoadingElementDuration|获取或设置一个值（以毫秒为单位），该值控制在显示或隐藏加载元素时的动画持续时间。  |
+|LoadingElementId| 获取或设置在加载 Ajax 函数时要显示的 HTML 元素的 id 特性。 |
+|OnBegin| 获取或设置要在更新页面之前立即调用的 JavaScript 函数的名称 |
+|OnComplete|获取或设置在实例化响应数据之后但在更新页面之前，要调用的 JavaScript 函数。  |
+|OnFailure| 获取或设置在页面更新失败时要调用的 JavaScript 函数。 |
+|OnSuccess|  获取或设置在成功更新页面之后要调用的 JavaScript 函数。|
+|UpdateTargetId| 获取或设置要使用服务器响应来更新的 DOM 元素的 ID。 |
+|Url|  获取或设置要向其发送请求的 URL。|
 
 ### Ajax.BeginForm
 
+```CSharp
+@using (Ajax.BeginForm("AjaxForm", "MyAjax", new AjaxOptions { HttpMethod = "Post", OnComplete = "foo", OnSuccess = "succ", OnFailure = "fail" }, new { role = "form" }))
+{
+    <div>
+        <label for="i1">第一</label>
+        <input type="text" name="i1" id="i1" />
+    </div>
+    <div>
+        <label for="i2">第二</label>
+        <input type="text" name="i2" id="i2" />
+    </div>
+    <div>
+        <label for="i3">第三</label>
+        <input type="text" name="i3" id="i3" />
+    </div>
+    <input type="submit" value="提交" />
+}
+```
+*当我们使用非Ajax辅助方法，而是jquery的ajax提交表单时，如下代码所示，需要在click事件中添加e.preventDefault()或者把input的type改为button。否则会刷新页面。*
+```CSharp
+<form class="form-horizontal" role="form" method="post" id="myform">
+
+ <div>
+        <label for="i1">第一</label>
+        <input type="text" name="i1" id="i1" />
+    </div>
+    <div>
+        <label for="i2">第二</label>
+        <input type="text" name="i2" id="i2" />
+    </div>
+    <div>
+        <label for="i3">第三</label>
+        <input type="text" name="i3" id="i3" />
+    </div>
+    <input type="submit" value="提交" />
+</form>
+<script>
+   $("input[type=submit]").click(function (e) {
+        e.preventDefault();
+        $.post("@Url.Action("CheckNameByAjax")", $("#myform").serialize(), function (result) {
+            alert(result);
+        });
+    });
+</script>
+```
+
+
 ### Ajax数据验证
+我们在注册是有时需要保证用户名或者邮箱唯一，可以使用ajax异步请求，来实现。
+```CSharp
+//Model
+
+
+//view
+<form class="form-horizontal" role="form" method="post" id="myform">
+    <div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.Name, new { @class = "control-label col-md-3" })
+            <div class="col-md-9">
+                @Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.PhoneNum, new { @class = "control-label col-md-3" })
+            <div class="col-md-9">
+                @Html.TextBoxFor(m => m.PhoneNum, new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.PhoneNum, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div>
+            <input type="submit" value="提交" class="btn btn-success" id="sure" />
+        </div>
+    </div>
+</form>
+<script>
+    $("#Name").change(function () {
+        $.ajax({
+            url: "@Url.Action("CheckNameByAjax")",
+            type: "post",
+            data: { "name": $("#Name").val() },
+            dataType: "JSON",
+            success: function (response, stutas, xhr) {
+                alert(response+status + xhr.statusText);
+            },
+            error: function (xhr, stutas, response) {
+                alert(response + status + xhr.statusText);
+            },
+            complete: function (data) {
+                alert(data.status+data);
+            },            
+        });
+    });
+    </script>
+```
+
 
 ajax翻页
 
