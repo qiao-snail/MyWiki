@@ -56,7 +56,6 @@ $('button').click(function(){
             complete:function(xhr,textStatus){
                 alert(textStatus);
             }
-
         }
     )
 });
@@ -91,7 +90,7 @@ $('button').click(function(){
 |traditional|Boolean|默认为 false，不使用传统风格的参数序列化。如为 true，则使用|
 
 
-$.Ajax的回调函数介绍：
+**$.Ajax的回调函数介绍：**
 
 * success
 
@@ -99,7 +98,7 @@ Function( Anything data, String textStatus, jqXHR jqXHR )
 请求成功后执行的回调函数，它将在函数处理完之后，并且 HTML 已经被插入完时被调用。回调函数会在每个匹配的元素上被调用一次，并且 this始终指向当前正在处理的 DOM 元素。 
 |参数|类型|说明|
 |---|---|---|
-|data|anything|从服务器返回的数据，并根据dataType参数进线处理后的数据|
+|data|anything|从服务器返回的数据，并根据dataType参数类型处理后的数据（默认是json）|
 |textStatus|string|描述状态的字符串|
 |jqxhr|jqXHR|XMLHTTPRequest对象|
 
