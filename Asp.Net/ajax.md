@@ -152,18 +152,110 @@ jqueryElement.load(url,data,success(responseText,textStatus,XMLHttpRequest))
 这是一个简单的 GET 请求功能以取代复杂 `$.ajax` 。请求成功时可调用回调函数。如果需要在出错时执行函数，请使用 `$.ajax`。
 
 ```javascript
-$(selector).get(url,data,success(response,status,xhr),dataType)
+$.get(url,data,success(response,status,xhr),dataType)
+```
 
+**使用`$.get()`从服务端获取数据**
+
+定义model
+
+```Csharp
+public class PersonViewModel
+{
+    public int PersonID { get; set; }
+
+    public string Name { get; set; }
+
+    public string PhoneNum { get; set; }
+
+    public bool IsMarried{get;set;}
+    
+}
+```
+
+定义Controller Action
+
+```CSharp
+public class MyAjaxController : Controller
+ {   
+   public JsonResult PersonList()
+    {
+        IList<PersonViewModel> persons = new List<PersonViewModel>();
+        for (int i = 0; i < 10; i++)
+        {
+            persons.Add(new PersonViewModel() { Email = "email" + i, Name = "name", IsMarried = false, PhoneNum = "1234" + i, Home = CityEnum.BJ, Height = i });
+        }        
+        return Json(persons,JsonRequestBehavior.AllowGet);
+    }
+ }
+```
+定义View
+
+```Csharp
+$.get('@Url.Action("PersonList", "MyAjax")',function (result) {
+        $.each(result, function (index, person) {
+            $('#myDiv').append('<p>Id: ' + person.PersonID + '</p>' +
+                '<p>Name: ' + person.Name + '</p>');
+
+        });
+    });
+
+//在Jquery1.5版本后，新增了一些事件，可以更好的处理不同结果。
+$.get('@Url.Action("PersonList", "MyAjax")')
+    .done(function (data) {
+        $.each(data, function (index, person) {
+            $('#myDiv').append('<p>Id: ' + person.PersonID + '</p>' +
+                '<p>Id: ' + person.Name + '</p>');
+        });
+    })
+    .fail(function (data) {
+        alert(data);
+    });
 ```
 
 `$.post()` 方法通过 HTTP POST 请求从服务器载入数据。
 
 ```javascript
-jQuery.post(url,data,success(data, textStatus, jqXHR),dataType)
+$.post(url,data,success(data, textStatus, jqXHR),dataType)
 ```
-`$.get()` `$.post()`方法都是四个参数，前面三个参数和`$.load()`一样，最后一个参数dataType:服务器返回的数据格式：xml、html、script、json、jsonp和text。
+使用`$.post()`方法想服务端发送数据
+定义一个Action
 
-`$.get()` `$.post()`都是`$.ajax()`的一个简写封装，都是只能回调success状态，error，和complete不能被回调。但是在jquery1.5版本上，新加了`jqXHR.done()` (表示成功), `jqXHR.fail()` (表示错误), 和 `jqXHR.always()` (表示完成, 无论是成功或错误；在jQuery 1.6 中添加) 事件，可以实现不同状态的回调。
+```CSharp
+ [HttpPost]
+public JsonResult ToPersonList(IEnumerable<PersonViewModel> persons)
+{
+    if (persons != null)
+        return Json(true);
+    else return Json(false);
+
+}
+```
+
+定义一个View
+
+```CSharp
+var results = { persons : [{ "PersonID": "1", "Name": "Manas" },
+    { "PersonID": "2", "Name": "Tester" }] };
+$.post('@Url.Action("ToPersonList","MyAjax")',results, function (data) {
+        alert(data)
+    });;
+    //同样也可以使用Jquery1.5版本的新的事件
+$.post('@Url.Action("ToPersonList","MyAjax")', results)
+        .done(function (data) {
+            alert(data);
+        })
+        .fail(function (data) {
+            alert(data);
+        })
+        .always(function (data) {
+            alert(data);
+        })
+```
+
+`$.get()` `$.post()`方法都是四个参数，前面三个参数和`$.load()`一样，最后一个参数dataType:服务器返回的数据格式：xml、html、script、json、jsonp和text。只有第一个参数是必须的，其他都可以为空。
+
+`$.get()` `$.post()`都是`$.ajax()`的一个简写封装，都是只能回调success状态，error，和complete不能被回调。但是在jquery1.5版本上，新加了`jqXHR.done()` (表示成功), `jqXHR.fail()` (表示错误), 和 `jqXHR.always()` (表示完成, 无论是成功或错误；在jQuery 1.5 中添加) 事件，可以实现不同状态的回调。
 
 ```javascript
 $.get('send-ajax-data.php')
@@ -178,6 +270,7 @@ $.get('send-ajax-data.php')
     })
     ;
 ```
+
 ---
 
 ### 表单序列化
@@ -237,6 +330,8 @@ public class PersonViewModel
     [Required(ErrorMessage = "不能为空")]
     [DataType(DataType.PhoneNumber)]
     public string PhoneNum { get; set; }
+
+    public bool IsMarried{get;set;}
 }
 ```
 
