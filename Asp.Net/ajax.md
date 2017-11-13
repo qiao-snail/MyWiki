@@ -2,17 +2,17 @@
 
 ## Ajax
 
-简单来说Ajax是一个无需重新加载整个网页的情况下，可以局部更新的技术（异步的发送接收数据，不会干扰当前页面）。
+简单来说Ajax是一个无需重新加载整个网页的情况下，可以更新局部页面或数据的技术（异步的发送接收数据，不会干扰当前页面）。
 
 ### Ajax工作原理
 
 Ajax使浏览器和服务器之间多了一个Ajax引擎作为中间层。通过Ajax请求服务器时，Ajax会自行判断哪些数据是需要提交到服务器，哪些不需要。只有确定需要从服务器读取新数据时，Ajax引擎才会向服务器提交请求。
 
-![Ajax原理](imgs/ajax-vergleich-en.svg)
+![Ajax原理](imgs/ajax.png)
 
 ### Ajax几个特点
 
-1. 不需要刷新更新页面或数据。
+1. 不需要提交整个页面就可以更新数据。
 2. 与服务器异步通信。
 3. Ajax请求不能后退，浏览器没有历史记录。 
 4. Ajax请求的页面不能加入到收藏夹。
@@ -34,32 +34,6 @@ jquery对Ajax一共有三层封装。
 ### $.Ajax()
 
 $.Ajax()是所有Ajax方法中最底层的方法，其他的都是基于$.Ajax()方法的封装，该方法只有一个参数-`JQueryAjaxSettings`（功能键值对）。
-
-代码示例：
-
-```javascript
-$('button').click(function(){
-    $.ajax(
-        {
-            type:'post',
-            url:'test.cshtml',
-            data:{
-                url:'hello',
-            },
-            dataType:'json',
-            success:function(data,stutas,xhr){
-                alert(data);
-            },
-            error:function(xhr, textStatus, data)){
-                alert(data);
-            }，
-            complete:function(xhr,textStatus){
-                alert(textStatus);
-            }
-        }
-    )
-});
-```
 
 `$.Ajax`参数`JQueryAjaxSettings`介绍：
 
@@ -90,12 +64,41 @@ $('button').click(function(){
 |traditional|Boolean|默认为 false，不使用传统风格的参数序列化。如为 true，则使用|
 
 
+代码示例：
+
+```javascript
+$('button').click(function(){
+    $.ajax(
+        {
+            type:'post',
+            url:'test',
+            data:{
+                url:'hello',
+            },
+            dataType:'json',
+            success:function(data,stutas,xhr){
+                alert(data);
+            },
+            error:function(xhr, textStatus, data)){
+                alert(data);
+            }，
+            complete:function(xhr,textStatus){
+                alert(textStatus);
+            }
+        }
+    )
+});
+```
+
+
+
 **$.Ajax的回调函数介绍：**
 
 * success
 
 Function( Anything data, String textStatus, jqXHR jqXHR )
-请求成功后执行的回调函数，它将在函数处理完之后，并且 HTML 已经被插入完时被调用。回调函数会在每个匹配的元素上被调用一次，并且 this始终指向当前正在处理的 DOM 元素。 
+
+请求成功后执行的回调函数。 
 |参数|类型|说明|
 |---|---|---|
 |data|anything|从服务器返回的数据，并根据dataType参数类型处理后的数据（默认是json）|
@@ -105,6 +108,7 @@ Function( Anything data, String textStatus, jqXHR jqXHR )
 * error
 
 Function( jqXHR jqXHR, String textStatus, String errorThrown )
+
 请求失败是执行的回调函数
 |参数|类型|说明|
 |---|---|---|
@@ -115,6 +119,7 @@ Function( jqXHR jqXHR, String textStatus, String errorThrown )
 * complete
 
 Function( jqXHR jqXHR, String textStatus )
+
 请求完成后执行的回调函数，不管是成功还是失败都执行。
 |参数|类型|说明|
 |---|---|---|
@@ -126,10 +131,10 @@ Function( jqXHR jqXHR, String textStatus )
 
 ### $.load()
 
-从服务器获取数据并且将返回的HTML代码并插入至匹配的元素中。
+从服务器获取数据并且将返回的HTML代码插入至匹配的元素中。
 
 ```javascript
-jqueryElement.load(url,data,success(responseText,textStatus,XMLHttpRequest))
+$('Element').load(url,data,success(responseText,textStatus,XMLHttpRequest))
 ```
 
 |参数|类型|说明|
@@ -147,14 +152,14 @@ jqueryElement.load(url,data,success(responseText,textStatus,XMLHttpRequest))
 
 `.load()`一般在获取静态资源时调用，`$.get()`和`$.post()`方法在需要和服务器交互数据时调用。
 
-`$.get()` 方法通过远程 HTTP GET 请求载入信息。
-这是一个简单的 GET 请求功能以取代复杂 `$.ajax` 。请求成功时可调用回调函数。如果需要在出错时执行函数，请使用 `$.ajax`。
+`$.get()` 方法通过 HTTP GET 请求载入信息。
+这是`$.ajax` GET请求的简写方式。请求成功时可调用回调函数。
 
 ```javascript
 $.get(url,data,success(response,status,xhr),dataType)
 ```
 
-**使用`$.get()`从服务端获取数据**
+**使用`$.get()`从服务端获取数据-代码示例**
 
 定义model
 
@@ -217,7 +222,8 @@ $.get('@Url.Action("PersonList", "MyAjax")')
 ```javascript
 $.post(url,data,success(data, textStatus, jqXHR),dataType)
 ```
-使用`$.post()`方法想服务端发送数据
+**使用`$.post()`方法向服务端发送数据-代码示例**
+
 定义一个Action
 
 ```CSharp
@@ -234,6 +240,7 @@ public JsonResult ToPersonList(IEnumerable<PersonViewModel> persons)
 定义一个View
 
 ```CSharp
+<script>
 var results = { persons : [{ "PersonID": "1", "Name": "Manas" },
     { "PersonID": "2", "Name": "Tester" }] };
 $.post('@Url.Action("ToPersonList","MyAjax")',results, function (data) {
@@ -250,25 +257,12 @@ $.post('@Url.Action("ToPersonList","MyAjax")', results)
         .always(function (data) {
             alert(data);
         })
+</script>
 ```
 
 `$.get()` `$.post()`方法都是四个参数，前面三个参数和`$.load()`一样，最后一个参数dataType:服务器返回的数据格式：xml、html、script、json、jsonp和text。只有第一个参数是必须的，其他都可以为空。
 
-`$.get()` `$.post()`都是`$.ajax()`的一个简写封装，都是只能回调success状态，error，和complete不能被回调。但是在jquery1.5版本上，新加了`jqXHR.done()` (表示成功), `jqXHR.fail()` (表示错误), 和 `jqXHR.always()` (表示完成, 无论是成功或错误；在jQuery 1.5 中添加) 事件，可以实现不同状态的回调。
-
-```javascript
-$.get('send-ajax-data.php')
-    .done(function(data) {
-        alert(data);
-    })
-    .fail(function(data) {
-        alert('Error: ' + data);
-    })
-    .always(function(data){
-        alert(data);
-    })
-    ;
-```
+`$.get()` `$.post()`都是`$.ajax()`的一个简写封装，都是只能回调success状态，error，和complete不能被回调。但是在jquery1.5版本上，新加了`jqXHR.done()` (表示成功), `jqXHR.fail()` (表示错误), 和 `jqXHR.always()` 事件，可以实现不同状态的回调。
 
 ---
 
@@ -299,13 +293,13 @@ $('form input[type=button]').click(function () {
 
 ## MVC中的Ajax使用
 
-Asp.Net MVC中包含了一组Ajax辅助方法。可以用来创建表单和指向控制器操作的链接，不同的是他们时异步进行的。当使用这个辅助方法时，不用编写任何脚本代码来实现程序的异步。该辅助方法依赖于**非侵入式mvc的jquery扩展**。如果使用这些辅助方法时，需要引入脚本`jquery.unbotrusive-ajax.js`
-
+Asp.Net MVC中包含了一组Ajax辅助方法。可以用来创建异步执行的表单和指向控制器操作的异步链接。当使用这个辅助方法时，不用编写任何脚本代码来实现程序的异步。该辅助方法依赖于**非侵入式MVC的jquery扩展**。如果使用这些辅助方法时，需要引入脚本`jquery.unbotrusive-ajax.js`
+（可以在NuGet中获得）
 ### 分部渲染
 
 Asp.Net MVC中的分部页面可以是`partialPage`也可以是含有布局（`layout`）的完整页面。只是在return的时候返回类型是`PartialView`。
 
-不管是分部页面还是完整页面，绝大部分情况下，部分页面的请求和完整页面的请求是一样的流程-*请求被路由到指定控制器，控制器执行特定的业务逻辑，返回给对应的试图。* 但是我们可以在控制器中使用`Request.IsAjax`来区别是否是ajax请求,是否是要返回分部试图，还是完整试图。分部试图（return PartialView)是render和返回了该页面的html。但是完整试图（return View)是返回了包括页面资源（css，js）和布局的所有html。
+绝大部分情况下，部分页面的请求和完整页面的请求是一样的流程-*请求被路由到指定控制器，控制器执行特定的业务逻辑，返回给对应的试图。* 我们可以在控制器中使用`Request.IsAjax`来区别是否是ajax请求,是否是要返回分部试图，还是完整试图。分部试图（return PartialView)是render和返回了该页面的html。但是完整试图（return View)是返回了包括页面资源（css，js）和布局的所有html。
 
 ### Ajax.Load()
 
@@ -597,10 +591,10 @@ public JsonResult CheckUserName(string Name)
 
 至此我们实现了Ajax的用户名唯一性和合法性的校验。**但是** Asp.Net MVC 提供了一个更简单的方法，可以用更少的代码实现一样的功能
 
-* 在属性上添加`[Remote("CheckUserName", "DataValidation")]`特性
+* 在属性上添加`[Remote("MethodName", "ControllerName")]`特性
+
 
 该特性允许客户端调用服务端的方法。
-
 修改Model
 
 ```CSharp
@@ -643,4 +637,10 @@ public JsonResult CheckUserName(string Name)
     return Json(result, JsonRequestBehavior.AllowGet);
 }
 ```
+
+Asp.Net MVC Ajax辅助方法可以让我们更简便的使用Ajax。但是也要理解本身Ajajx的请求。
+
 ---
+参考资料：
+
+* [Ajax](http://www.w3school.com.cn/jquery/ajax_ajax.asp)
