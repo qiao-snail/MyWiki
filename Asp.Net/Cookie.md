@@ -1,4 +1,4 @@
-# Asp.Net MVC 中的 Cookie
+# Asp.Net MVC 中的 Cookie（译）
 
 ## Cookie
 
@@ -6,7 +6,7 @@
 
 Cookie为Web应用程序中提供了一种存储特定用户信息的方法。Cookie的值是字符串类型，且对用户是可见的。
 
-* Cookie随着每次Request和Response在浏览器和服务器之间交换数据。
+* Cookie随着每次`Request`和`Response`在浏览器和服务器之间交换数据。
 
 如果一个用户请求服务器上的一个页面，服务器除了返回请求的页面,也返回了一个包含日期和时间的Cookie。这个Cookie存储在用户硬盘上的一个文件夹上。稍后，如果用户再次访问服务器，当用户输入URL时，浏览器会在本地硬盘上查看与该URL相关联的Cookie。如果Cookie存在，浏览器会将Cookie随着请求一起发送。然后，服务器可以读取发送过来的Cookie信息，用户上次访问该站点的日期和时间。您可以使用这些信息向用户显示一条消息，或者检查一个过期日期。
 
@@ -35,13 +35,13 @@ Cookie用于许多目的，所有这些都与帮助网站记住用户有关。�
 
 ## 写Cookie
 
-浏览器负责管理用户电脑上的Cookie。Cookie通过HttpResonse对象被发送到浏览器，该对象公开了一个名为Cookies的集合。想要发送到浏览器的任何cookie都必须添加到这个集合中。在创建cookie时，指定一个名称和值。每个cookie都必须有一个惟一的名称，以便在从浏览器读取时可以识别它。因为cookie是按名称存储的，因此多个Cookie名称相同时，新的Cookie值会覆盖掉之前的。
+浏览器负责管理用户电脑上的Cookie。Cookie通过`HttpResonse`对象被发送到浏览器，该对象公开了一个名为Cookies的集合。想要发送到浏览器的任何Cookie都必须添加到这个集合中。在创建Cookie时，指定一个名称和值。每个Cookie都必须有一个惟一的名称，以便浏览器读取时可以识别它。因为Cookie是按名称存储的，因此多个Cookie名称相同时，新的Cookie值会覆盖掉之前的。
 
-可以设置Cookie的日期和时间过期。当用户访问写Cookie的站点时，浏览器会删除过期的Cookie。Cookie的有效期可以是50年。
+可以设置Cookie的日期和过期时间。当用户访问写Cookie的站点时，浏览器会删除过期的Cookie。Cookie的有效期可以是50年。
 
 如果没有设置Cookie的过期时间，就创建了Cookie，那么它并不会存储在用户的硬盘上。这种Cookie是作为用户会话信息的一部分来维护的。当用户关闭浏览器时，cookie就会被丢弃。像这样的非持久cookie对于需要在短时间内存储的信息非常有用，或者出于安全原因，不应该将其写入到客户机计算机上的磁盘上。例如，如果用户正在使用公共计算机，而不希望将cookie写入磁盘，则非持久性cookie非常有用。
 
-您可以通过多种方式将cookie添加到cookie集合中。下面的例子展示了两个编写cookie的方法:
+您可以通过多种方式将Cookie添加到Cookie集合中。下面的例子展示了两个编写Cookie的方法:
 
 ```CSharp
 //第一种
@@ -54,25 +54,21 @@ aCookie.Expires = DateTime.Now.AddDays(1);
 Response.Cookies.Add(aCookie);
 ```
 
-该示例将两个cookie添加到cookie集合中，其中一个名为用户名，另一个为上次访问时间。对于第一种方法，Cookie集合的值可以直接读写。因为Cookie继承自NameObjectCollectionBase集合类型，所以可以直接获取Cookie。
+该示例将两个Cookie添加到Cookie集合中，其中一个名为用户名，另一个为上次访问时间。对于第一种方法，Cookie集合的值可以直接读写。因为Cookie继承自`NameObjectCollectionBase`集合类型，所以可以直接获取Cookie。
 
 对于第二种方法，创建一个HttpCookie对象的实例，设置它的属性，然后通过Add方法将其添加到cookie集合中。Cookie的名称通过构造函数添加。
 
-这两个示例都完成了相同的任务，将cookie写入浏览器。在这两种方法中，过期值必须为DateTime类型。因为所有的Cookie值都以字符串形式存储，所以日期时间值会转换为字符串。
+这两个示例都完成了相同的任务，将Cookie写入浏览器。在这两种方法中，过期值必须为DateTime类型。因为所有的Cookie值都以字符串形式存储，所以日期时间值会转换为字符串。
 
 ### 多个值的Cookie
 
-Cookie可以存储一个值，比如用户名和最后一次访问。也可以在一个Cookie中存储多个键值对。键值对被称为子键。(子键的布局非常类似于URL中的查询字符串。)例如，您可以创建一个名为userInfo的cookie，它具有子健userName和lastVisit，而不是创建两个单独的Cookie。
+Cookie可以存储一个值，比如用户名或最后一次访问。也可以在一个Cookie中存储多个键值对。键值对被称为子键。(子键的布局非常类似于URL中的查询字符串。)例如，您可以创建一个名为userInfo的cookie，它具有子健userName和lastVisit，而不是创建两个单独的Cookie。
 
 子健可以将相关的或类似的信息放入一个Cookie中。如果所有信息都在一个Cookie中，Cookie属性如过期将应用于所有信息。(相反，如果您想为不同类型的信息分配不同的过期日期，则应该将信息存储在单独的cookie中。)
 
-带有子键的Cookie也可以帮助限制Cookie文件的大小。
-之前提到，Cookie通常被限制为4096字节，并且每个站点不能存储20多个Cookie。
-通过使用一个带有子键的Cookie，就可以节省为该站点所分配的20个Cookie中的一个或几个。
-此外，一个Cookie占用了大约50个字符(过期信息，等等)，加上您存储在其中的值的长度，所有这些值都指向4096字节的限制。
-如果您存储5个子键而不是5个单独的cookie，您可以节省单个Cookie的开销，并且还可以节省大约200个字节。
+带有子键的Cookie也可以帮助限制Cookie文件的大小。之前提到，Cookie通常被限制为4096字节，并且每个站点能存储20多个Cookie。通过使用一个带有子键的Cookie，可以降低站点Cookie数量的限制。此外，一个Cookie自身就占用了大约50个字符(过期信息，等等)，加上您存储在其中的值的长度，所有这些值都指向4096字节的限制。如果您存储5个子键而不是5个单独的cookie，您可以节省单个Cookie的开销，并且还可以节省大约200个字节。
 
-要使用子键创建一个Cookie，您可以使用语法的变体来编写一个Cookie。以下示例显示了两种编写同一个Cookie的方法，每个方法都有两个子项：
+创建有子键的Cookie：
 
 ```Csharp
 //第一种
@@ -91,7 +87,7 @@ Response.Cookies.Add(aCookie);
 
 ## Cookie作用域
 
-默认情况下，一个站点的所有Cookie都存储在客户硬盘上，请求时该网站时所有的Cookie都被发送到服务器。换句话说，网站上的每一个页面都能获得该站点的所有Cookie。但是，您可以通过两种方式来设置cookie的范围:
+默认情况下，一个站点的有过期时间的所有Cookie都存储在客户硬盘上，请求该网站时所有的Cookie都被发送到服务器。换句话说，网站上的每一个页面都能获得该站点的所有Cookie。但是，您可以通过两种方式来限制Cookie的范围:
 
 * 将Cookie的范围限制在服务器上的一个文件夹中，这允许您将Cookie限制在站点上的一个应用程序中。
 
@@ -137,8 +133,7 @@ Response.Cookies["domain"].Domain = "contoso.com";
 
 ## 读取Cookie
 
-当浏览器向服务器发出请求时，Cookie会随着请求一起发送到服务器上。
-在你的应用程序，您可以使用HttpRequest来读取cookie。
+当浏览器向服务器发出请求时，Cookie会随着请求一起发送到服务器上。在你的应用程序，您可以使用HttpRequest来读取cookie。
 
 代码示例：
 
@@ -213,15 +208,8 @@ for(int i=0; i<Request.Cookies.Count; i++)
 }
 ```
 
-上一个示例的有一个不足的地方，如果cookie有子键，会将子键作为单个name/value字符串显示。
-您可以读取cookie的haskey属性，以确定cookie是否有子键。
-如果有，您可以读取子键集合以获得单独的子键名和值。
-您可以通过索引值直接从值集合中读取子键值。
-相应的子键名可以在值集合的AllKeys成员中找到，它返回一个字符串数组。
-您还可以使用值集合的键值。
-但是，AllKeys属性在第一次被访问时被缓存。
-相反，键属性在每次访问时都构建一个数组。
-由于这个原因，在相同页面请求的上下文中，AllKeys属性要快得多。
+上一个示例的有一个不足的地方，如果cookie有子键，会将子键作为单个name/value字符串显示。您可以读取cookie的haskey属性，以确定cookie是否有子键。如果有，您可以读取子键集合以获得单独的子键名和值。
+您也可以通过索引值直接从值集合中读取子键值。相应的子键名可以在值集合的AllKeys成员中找到，它返回一个字符串数组。您还可以使用值集合的键值。但是，AllKeys属性在第一次被访问时被缓存。相反，键属性在每次访问时都构建一个数组。由于这个原因，在相同页面请求的上下文中，AllKeys属性要快得多。
 
 下面的例子显示了前面的示例的修改。它使用HasKeys属性来测试子键，如果检测到子键，那么这个示例将从值集合中获得子键:
 
@@ -287,9 +275,9 @@ for (int i = 0; i < Request.Cookies.Count; i++)
 
 ## Cookie的删除和修改
 
-## 修改Cookie
+### 修改Cookie
 
-不能直接在获取到Cookie后就修改Cookie的值,因为Cookie存储在用户的硬盘上（Request.Cookies["Key"].Value="some"，在这里是不起作用的)，必须在Response.Cookies["Key"].Value="SomeNew"中修改才可以。其实就是程序中设置的Cookie新值，覆盖了用户浏览地上的Cookie的旧值。
+不能直接在获取到Cookie后就修改Cookie的值,因为Cookie存储在用户的硬盘上（Request.Cookies["Key"].Value="some"，在这里是不起作用的)，必须在Response.Cookies["Key"].Value="SomeNew"中修改才可以。其实就是服务器中设置的Cookie新值，覆盖了用户浏览地上的Cookie的旧值。
 
 代码示例：
 

@@ -416,6 +416,31 @@ Html:
 ```
 ---
 
+
+### 13.1 Html.Action() 执行一个Action，并返回html字符串。
+
+### 13.2 Html.ActionLink() 生成一个超链接。
+
+如:
+
+`Html.ActionLink("link text", "someaction", "somecontroller", new { id = "123" }, null) `
+
+返回：
+
+`<a href="/somecontroller/someaction/123">link text</a>`
+
+### 13.3 Url.Action() 返回一个Action的链接地址 
+
+如：
+
+`Url.Action("someaction", "somecontroller", new { id = "123" })`
+
+ 返回：
+ 
+ `/somecontroller/someaction/123`
+
+---
+
 ## 自定义Helper扩展方法
 您还可以通过在HtmlHelper类上创建扩展方法或在类中创建静态方法来创建自定义Helper方法。
 
@@ -453,3 +478,5 @@ Html:
 ```
 ---
 以上就是HtmlHelper的一些常用扩展方法。
+
+
