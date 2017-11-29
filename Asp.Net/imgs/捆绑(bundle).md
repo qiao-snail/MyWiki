@@ -4,12 +4,12 @@
 
 ## Bundle
 
-Asp.Net MVC4和.NET Framework4.5提供了支持捆绑和压缩的新类库System.Web.Optimization。
+Asp.Net MVC4和.NET Framework4.5提供了支持捆绑和压缩的新类库`System.Web.Optimization`。
 
 该类库提供了如下特性：
 
 * 捆绑-将多个资源文件（javascript,css）合并成一个单独的文件，但是合并成的单独文件必须是相同类型，要么都是JavaScript要么都是CSS。
-* 压缩资源文件-清理空格，换行等。
+* 压缩资源文件-清理空格，换行等，压缩文件大小。
 * 自动清理缓存-服务端更新资源时，客户端不再使用缓存资源，而是重新从服务端缓存。
 
 ---
@@ -20,7 +20,7 @@ Asp.Net MVC4和.NET Framework4.5提供了支持捆绑和压缩的新类库System
 
 * 调用`BundleCollection.Add()`方法添加捆绑资源，该方法参数为`ScriptBundle`或`StyleBundle`。
 
-* `ScriptBundle`和`StyleBundle`需要传递一个虚拟路径给构造函数。该虚拟路径其实就是该捆绑的名称或者标识符。所以该虚拟路径可以任意设置，并不需要匹配物料路径。`Bundle`的`Include`方法包含一个或者多个脚本。
+* `ScriptBundle`和`StyleBundle`需要传递一个虚拟路径给构造函数。该虚拟路径其实就是该捆绑的名称或者标识符。所以该虚拟路径可以任意设置，并不需要匹配物理路径。`Bundle`的`Include`方法包含一个或者多个脚本。
 
 * 通过引用该虚拟路径就可以使用这些捆绑的资源`@Script.Render("~/bundles/jquery")`。
 
@@ -35,13 +35,14 @@ public static void RegisterBundles(BundleCollection bundles)
      //添加名称为“~/bundles/jquery”脚本捆绑
      bundles.Add(new ScriptBundle("~/bundles/jquery").Include("~/Scripts/jquery-{version}.js"));
      //添加名称为“~/Content/css”样式捆绑
-     bundles.Add(new StyleBundle("~/Content/css").Include("~/Content/Site.css"))
+     bundles.Add(new StyleBundle("~/Content/css").Include("~/Content/Site.css"));
 }
 ```
 
 使用`{version}`占位符可以在使用NuGet更新Jquery版本时，不需要更新Bundle的引用，自动使用最新的Jquery版本。
 
-`ScriptBundle`和`StyleBundle`的`Include`方法参数是一个字符串类型的数组，所以一个Bundles实例可以添加多个文件。
+`ScriptBundle`和`StyleBundle`的`Include`方法参数是一个字符串类型的数组，所以一个Bundle实例可以添加多个文件。
+
 如
 
 ```CSharp
