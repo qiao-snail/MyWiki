@@ -4,11 +4,16 @@
 
 即： 路由是对URL到Controller和Action的映射及URL的输出。
 
-## Route Table
+## 路由注册与配置
 
 当创建一个MVC应用程序的时候，在Global.asax文件中的Application_Start()方法会创建一个route table（Global.asax包含了Asp.Net应用程序生命周期的handler事件）。
 
-当MVC应用程序第一次启动时，会调用Application_Start()方法。`RouteConfig.RegisterRoutes(RouteTable.Routes)`方法创建一个Route Table。
+---
+
+#### 注册路由
+
+当MVC应用程序第一次启动时，会调用Application_Start()方法。`RouteConfig.RegisterRoutes(RouteTable.Routes)`方法创建一个Route Table，将RouteTable注册到应用程序。
+
 
 ```CSharp
 public class MvcApplication : System.Web.HttpApplication
@@ -23,6 +28,10 @@ public class MvcApplication : System.Web.HttpApplication
     }
 
 ```
+
+---
+
+#### 配置路由
 
 在App_Start文件下，RouteConfig.cs文件里是路由的配置信息。通过RouteCollection.MapRoute()方法配置路由信息。
 
@@ -42,11 +51,14 @@ public class RouteConfig
     }
 ```
 
+
 * name:为该路由名称
 
 * url：为路由模板，`{}`是占位符。
 
 * defaults:为路由默认值
+
+#### URL匹配
 
 上述代码在路由表里创建了一个路由名为Default的路由。该Default路由由controller，action，id三部分组成，id为可选参数。
 
@@ -81,6 +93,7 @@ public class HomeController :Controller
     }
 }
 ```
+
 并且该action的参数名称需要和route中的参数（id）一直。即也是id。才可以匹配`xxx.com/home/index/1`否则只能通过url传参匹配`xxx.com/home/index?myparam=1`
 
 如：如果定义的Action如下
@@ -94,10 +107,11 @@ public class HomeController :Controller
     }
 }
 ```
-输入`xxx.com/home/index/1`时，会认为参数为空，即str并没有被赋值，但是依然会调用index方法，只不过是认为str为空。但是当你通过url传参时，是可以匹配的`xxx.com/home/index?str=hello`
+
+输入`xxx.com/home/index/1`时，会认为参数为空，即str并没有被赋值，但是依然会调用index方法，只不过是认为str为空。但是当你通过url传参请求时`xxx.com/home/index?str=hello`，是可以匹配到这个Action，也可以给str赋值。
 
 
-#### 在同一个Controller下是不允许有Action重载的
+**在同一个Controller下是不允许有Action重载的**
 
 如：
 ```CSharp
@@ -113,11 +127,12 @@ public class HomeController :Controller
     }
 }
 ```
+
 `在请求时提示错误：在对控制器类型“HomeController”的操作Index的请求方法不明确。`
 
 ---
 
-### 路由顺序和优先级
+## 路由顺序和优先级
 
 路由引擎在定位路由时，会遍历路由集合中的所有路由。只要发现了一个匹配的路由，会立即停止搜索。所以定义路由一定要注意路由的先后循序。一般是越是精确的放在前面。
 
@@ -134,11 +149,11 @@ routes.MapRoute{
     new {controller="Admin",action="Index"}
 }
 ```
-第一个路由有一个{site}占位符。默认的控制器为MyControllerOne,第二个路由是一个常量Admin,默认的控制器为Admin。这两个都是正确的路由配置。但是当我们输入url`xxx.com/admin`时，我们是请求AdminController下的Index操作方法。但是根据上面的路由映射，该url匹配第一个路由，然后就停止了路由查找。此时出发的Controller为MyControllerOne。
+第一个路由有一个{site}占位符。默认的控制器为MyControllerOne。第二个路由是一个常量Admin,默认的控制器为Admin。这两个都是正确的路由配置。但是当我们输入url`xxx.com/admin`时，我们预想的是请求AdminController下的Index操作方法。但是根据上面的路由映射，该url会匹配第一个路由，然后就停止了路由查找。此时触发的Controller为MyControllerOne。
 
 ---
 
-### 路由约束
+## 路由约束
 
 之前的路由配置，都没有url的参数的类型信息。如果我们的Action是一个Int类型，但是url中的参数是个字符串，这样就会导致错误。所以如果有url的类型约束可以规避这个错误的发生。
 
