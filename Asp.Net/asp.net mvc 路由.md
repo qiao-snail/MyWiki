@@ -174,7 +174,7 @@ routes.MapRoute{
 
 如：
 ```CSharp
- public class MyRouteConstraint : IRouteConstraint
+public class MyRouteConstraint : IRouteConstraint
 {
     public bool Match(HttpContextBase httpContext, Route route, string parameterName, RouteValueDictionary values, RouteDirection routeDirection)
     {
