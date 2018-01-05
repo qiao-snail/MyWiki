@@ -136,10 +136,10 @@ public ActionResult Login(LoginViewModel vm, string returnUrl)
         vm.Role = "VIP";
         var authTicket = new FormsAuthenticationTicket(
                             1,                             // 版本
-                            vm.UserName,                      // 用户名称
+                            vm.UserName,                   // 用户名称
                             DateTime.Now,                  // 创建日期
                             DateTime.Now.AddMinutes(20),   // 过期时间
-                            vm.Remember,                    // 是否记住
+                            vm.Remember,                   // 是否记住
                             vm.Role                        // 用户角色
                             );
 
@@ -248,6 +248,7 @@ public class MyFormsPrincipal<TUserData> : IPrincipal where TUserData : class, n
     {
         return false;
     }
+}
 
 ```
 
