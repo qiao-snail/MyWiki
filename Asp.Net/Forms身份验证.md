@@ -116,7 +116,7 @@ public ActionResult VIP()
 如：
 
 ```CSharp
- [HttpPost]
+[HttpPost]
 [ValidateAntiForgeryToken]
 public ActionResult Login(LoginViewModel vm, string returnUrl)
 {
@@ -252,8 +252,8 @@ public class MyFormsPrincipal<TUserData> : IPrincipal where TUserData : class, n
 
 ```
 
-> 这个方法的核心是：
-> 1. 在登录时，创建自定义的FormsAuthenticationTicket对象，它包含了用户信息。
+>这个方法的核心是：
+>1. 在登录时，创建自定义的FormsAuthenticationTicket对象，它包含了用户信息。
 >2. 加密FormsAuthenticationTicket对象。
 >3. 创建登录Cookie，它将包含FormsAuthenticationTicket对象加密后的结果。
 >4. 在管线的早期阶段，读取登录Cookie，如果有，则解密。
