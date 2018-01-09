@@ -1,13 +1,10 @@
 # Asp.Net MVC 身份验证-Forms
 
-在MVC中对于需要登陆才可以访问的页面，只需要在对应的Controller或Action上添加特性`[Authorize]`就可以限制非登录用户访问该页面。那么如果实现登录？
+在MVC中对于需要登录才可以访问的页面，只需要在对应的Controller或Action上添加特性`[Authorize]`就可以限制非登录用户访问该页面。那么如果实现登录？
 
 ## Form登录
 
-
 #### 应用程序确认用户状态
-
-
 
 HTTP协议是无状态的。所以上一次请求和下一次请求并不能相互关联起来，就是说这些请求并不能确定是哪个用户和用户的状态。但是对于登录来说，我们就需要准确的知道用户的状态及是哪个用户。
 
@@ -199,6 +196,7 @@ protected void Application_AuthenticateRequest(Object sender, EventArgs e)
 
 HttpContext.User定义如下
 
+通过User属性可以访问Iprincipal接口的属性和方法。
 
 ```CSharp
 //获取或设置当前 HTTP 请求的安全信息。
@@ -211,9 +209,7 @@ public IPrincipal User
 ```
 
 
-
-通过User属性可以访问Iprincipal接口的属性和方法。
-
+所以扩展用户身份标识可以通过实现IPrincipal接口。
 
 如：
 
@@ -259,6 +255,16 @@ public class MyFormsPrincipal<TUserData> : IPrincipal where TUserData : class, n
 >4. 在管线的早期阶段，读取登录Cookie，如果有，则解密。
 >5. 从解密后的FormsAuthenticationTicket对象中还原我们保存的用户信息。
 >6. 设置HttpContext.User为我们自定义的对象。
+
+---
+
+[代码](https://pan.baidu.com/s/1hrLvm9Q)
+
+---
+
+参考：
+
+* [细说ASP.NET Forms身份认证](http://www.cnblogs.com/fish-li/archive/2012/04/15/2450571.html)
 
 ---
 
