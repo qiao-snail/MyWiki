@@ -12,14 +12,15 @@
 Asp.Net是一个管道模型，一个Http请求先经过HttpModule，再通过HttpHandlerFactory，创建一个对应的HttpHandler处理对应的请求。
 
 > 如果把请求的管道模型比作一个运行的火车的话，HttpHandler是请求火车的目的地。HttpModule是一个沿途的站点。
-在HttpModule可以注册HttpHanlder要处理的事件。在HttpModule处理过程中，Asp.Net Framework还没开始工作（）。此时是对Http请求信息的处理。而HttpHandler则是已经进入Asp.Net Framework。来对要响应的内容处理。
 
-* HttpHandler可以处理响应处理。
-* HttpModule则可以同一处理通用性功能，和响应内容无关。
+* `HttpHandler`多用来处理响应处理。
+* `HttpModule`多用来处理通用性和响应内容无关的功能。
 
 ![管道模型](imgs/pipeline1.png)
 
-请求最后是通过IHttpHandler处理。路由系统通过一个注册到当前应用的自定义的HttpModule对所有请求进行拦截，并通过对请求的分析为止动态的匹配一个用于处理它的HttpHandler。HttpHandler对请求进行处理后将相应的结果写入Http回复。来实现对请求的响应。
+>在管道模型中，路由实现了接口`IHttpModule`的类`UrlRoutingModule`来对所有请求进行拦截，并通过对请求的分析为动态的匹配一个用于处理该请求的HttpHandler。HttpHandler对请求进线响应操作。
+
+
 
 >使用URL请求应用程序时，该请求最终是通过Handler来完成，Asp.Net MVC 是通过一个自定义的`HttpHandler`--`MVCHandler`来实现对Controller的激活和Action执行。但是在这之前对Controller和Action的解析是通过Asp.Net的URL路由系统来完成，整个路由系统是通过一个自定义的`HttpModule`--`UrlRoutingModule`来是实现的。
 
