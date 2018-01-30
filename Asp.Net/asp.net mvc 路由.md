@@ -2,35 +2,129 @@
 
 当用户通过URL访问网站时，要把用户请求的URL映射到正确的应用程序的操作上。那么如何实现这个映射--Routing（路由）。
 
-路由并不专属于`Asp.Net MVC`,而是建立在Asp.Net之上的一个组件，所以所有依赖Asp.Net的都可以使用路由。如WebForms,API等。
-
+路由并不专属于`Asp.Net MVC`,而是建立在Asp.Net Framework之上的一个组件，所以所有依赖Asp.Net的都可以使用路由。如WebForms,API等,但是Asp.Net MVC 和路由密切相关。
 
 图：路由关系图
 
 ![路由关系图](imgs/route1.png)
 
-Asp.Net是一个管道模型，一个Http请求先经过HttpModule，再通过HttpHandlerFactory，创建一个对应的HttpHandler处理对应的请求。
+---
 
-> 如果把请求的管道模型比作一个运行的火车的话，HttpHandler是请求火车的目的地。HttpModule是一个沿途的站点。
+## 路由工作流程
 
-* `HttpHandler`多用来处理响应处理。
-* `HttpModule`多用来处理通用性和响应内容无关的功能。
+>Asp.Net是一个管道模型，一个Http请求先经过`HttpModule`，再通过`HttpHandlerFactory`，创建一个对应的`HttpHandler`处理对应的请求。所以对Asp.Net的所有的扩展也是通过注册这些管道事件来实现的。因为路由是建立在`Asp.Net Framework`之上的，所以路由也是注册实现了管道事件。但是是通过注册`HttpModule`的`PostResolveRequestCache`事件来实现的。
 
-![管道模型](imgs/pipeline1.png)
+#### 为什么不注册HttpHandler来实现呢？
 
->在管道模型中，路由实现了接口`IHttpModule`的类`UrlRoutingModule`来对所有请求进行拦截，并通过对请求的分析为动态的匹配一个用于处理该请求的HttpHandler。HttpHandler对请求进线响应操作。
+因为：
 
-
-
->使用URL请求应用程序时，该请求最终是通过Handler来完成，Asp.Net MVC 是通过一个自定义的`HttpHandler`--`MVCHandler`来实现对Controller的激活和Action执行。但是在这之前对Controller和Action的解析是通过Asp.Net的URL路由系统来完成，整个路由系统是通过一个自定义的`HttpModule`--`UrlRoutingModule`来是实现的。
-
-**即： 路由是对URL到Controller和Action的映射及URL的输出。**
+> 如果把请求的管道模型比作一个运行的火车的话，`HttpHandler`是请求火车的目的地。`HttpModule`是一个沿途的站点。
+> * `HttpHandler`多用来处理响应处理。
+> * `HttpModule`多用来处理通用性和响应内容无关的功能。
 
 ---
 
-## 路由注册与配置
+![管道模型](imgs/pipeline1.png)
 
-`Global.asax`包含了Asp.Net应用程序生命周期的handler事件。实现`HttpApplication`的方法或事件，会在对应的生命周期中调用。在`Global.asax`文件中`MVCApplication`类中实现`Application_Start()`方法会在应用程序启动时执行，且只执行一次。所以在该方法中注册路由。
+**路由就是一个实现了`IHttpModule`接口的`UrlRoutingModule`的`HttpModule`,在管道事件中拦截请求，分析Url，匹配路由，再交给`HttpHandler`处理的过程。**
+
+### 路由如何拦截请求 
+
+路由系统中是通过实现了接口`IHttpModule`的`UrlRoutingModule`类来注册管道事件，在该类中实现了路由的功能。
+
+所以路由组件中`UrlRoutingModule`是关键。
+
+[UrlRoutingModule源码在线查看](http://referencesource.microsoft.com/#System.Web/Routing/UrlRoutingModule.cs,9b4115ad16e4f4a1)
+
+通过代码可以发现。`UrlRoutingModule`注册了`PostResolveRequestCache`事件,因为在管道事件中`PostMapRequestHandler`事件是把请求交给HttpHandler来处理。所以必须要在交给HttpHandler处理之前，解析Url路由。而`PostResolveRequestCache`在该事件之前。([Asp.Net管道事件](https://msdn.microsoft.com/en-us/library/ms178473.aspx))
+
+```CSharp
+    //UrlRoutingModule源码
+ ...
+ application.PostResolveRequestCache += OnApplicationPostResolveRequestCache;
+ ...
+
+```
+
+在`UrlRoutingModule`代码中。通过本地的一个`PostResolveRequestCache`方法，实现HttpHandler的映射。
+
+```CSharp
+    // UrlRoutingModule的本地方法
+   public virtual void PostResolveRequestCache(HttpContextBase context) {
+            // 根据HttpContext的Url匹配路由对象，该对象包含了Controller，Action和参数
+            // Match the incoming URL against the route table
+            RouteData routeData = RouteCollection.GetRouteData(context);
+ 
+            // Do nothing if no route found
+            if (routeData == null) {
+                return;
+            }
+
+            //由匹配的路由对象创建一个MVCRouteHandler
+            // If a route was found, get an IHttpHandler from the route's RouteHandler
+            IRouteHandler routeHandler = routeData.RouteHandler;
+            if (routeHandler == null) {
+                throw new InvalidOperationException(
+                    String.Format(
+                        CultureInfo.CurrentCulture,
+                        SR.GetString(SR.UrlRoutingModule_NoRouteHandler)));
+            }
+ 
+            // This is a special IRouteHandler that tells the routing module to stop processing
+            // routes and to let the fallback handler handle the request.
+            if (routeHandler is StopRoutingHandler) {
+                return;
+            }
+ 
+            //封装匹配的路由对象和HttpContext，创建新的RequestContext
+            RequestContext requestContext = new RequestContext(context, routeData);
+ 
+            // Dev10 766875	Adding RouteData to HttpContext
+            context.Request.RequestContext = requestContext;
+            
+            //获取MVCHandler
+            IHttpHandler httpHandler = routeHandler.GetHttpHandler(requestContext);
+            if (httpHandler == null) {
+                throw new InvalidOperationException(
+                    String.Format(
+                        CultureInfo.CurrentUICulture,
+                        SR.GetString(SR.UrlRoutingModule_NoHttpHandler),
+                        routeHandler.GetType()));
+            }
+ 
+            if (httpHandler is UrlAuthFailureHandler) {
+                if (FormsAuthenticationModule.FormsAuthRequired) {
+                    UrlAuthorizationModule.ReportUrlAuthorizationFailure(HttpContext.Current, this);
+                    return;
+                }
+                else {
+                    throw new HttpException(401, SR.GetString(SR.Assess_Denied_Description3));
+                }
+            }
+ 
+            // Remap IIS7 to our handler
+            context.RemapHandler(httpHandler);
+        }
+
+```
+
+Asp.Net MVC 生命周期图：
+
+![生命周期图](imgs/life1.png)
+
+结合生命周期图和`UrlRoutingModule`的代码可以看出路由的工作过程：
+
+1. 根据HttpContext，路由匹配规则，匹配一个RouteData对象。
+2. 调用RouteData对象的RouteHandler获取IRouteHandler的MVCRouteHandler。
+3. 获取一个由匹配的RouteData和HttpContext创建的RequestContext
+4. 由在2种的获取的IRouteHandler对象结合3中的RequesetContext创建IHttpHandler-MVCHandler.
+5. HttpHandler管道事件执行。
+
+---
+
+## 路由的使用
+
+`Global.asax`包含了Asp.Net应用程序生命周期的管道事件。实现`HttpApplication`的方法或事件，会在对应的生命周期中调用。在`Global.asax`文件中`MVCApplication`类中实现`Application_Start()`方法会在应用程序启动时执行，且只执行一次。所以在该方法中注册路由。
 
 ---
 
@@ -66,7 +160,9 @@ public class RouteConfig
 
 #### 注册路由
 
-当MVC应用程序第一次启动时，会调用`Global.asax`文件中`MVCApplication`类的`Application_Start()`方法。调用`RouteConfig`类的静态方法`RegisterRoutes(RouteTable.Routes)`将RouteTable注册到应用程序。
+`Global.asax`的`MVCApplication`继承`HttpApplication`。而`HttpApplication`则是管理整个管道周期的实例。在该类中通过注册事件，或方法可以在管道事件中被调用。注册路由到应用程序就是在`Application_Start()`方法中实现。
+
+如：
 
 ```CSharp
 public class MvcApplication : System.Web.HttpApplication
@@ -160,7 +256,7 @@ public class HomeController :Controller
 
 ---
 
-## 路由顺序和优先级
+#### 路由顺序和优先级
 
 路由引擎在定位路由时，会遍历路由集合中的所有路由。只要发现了一个匹配的路由，会立即停止搜索。所以定义路由一定要注意路由的先后循序。一般是越是精确的放在前面。
 
@@ -181,7 +277,7 @@ routes.MapRoute{
 
 ---
 
-## 路由约束
+#### 路由约束
 
 之前的路由配置，都没有url的参数的类型信息。如果我们的Action是一个Int类型，但是url中的参数是个字符串，这样就会导致错误。所以如果有url的类型约束可以规避这个错误的发生。
 
