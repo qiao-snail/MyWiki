@@ -339,6 +339,11 @@ routes.MapRoute{
 
 That's it
 
+
+参考资料：
+
+* [ASP.NET路由系统实现原理：HttpHandler的动态映射](http://www.cnblogs.com/artech/archive/2012/03/28/http-handler-mapping.html)
+
 ---
 
 
