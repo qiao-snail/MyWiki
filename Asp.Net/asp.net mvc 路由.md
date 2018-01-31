@@ -2,7 +2,7 @@
 
 当用户通过URL访问网站时，要把用户请求的URL映射到正确的应用程序的操作上。那么如何实现这个映射--Routing（路由）。
 
-路由并不专属于`Asp.Net MVC`,而是建立在Asp.Net Framework之上的一个组件，所以所有依赖Asp.Net的都可以使用路由。如WebForms,API等,但是Asp.Net MVC 和路由密切相关。
+路由并不专属于`Asp.Net MVC`,而是建立在`Asp.Net Framework`之上的一个组件，所以所有依赖`Asp.Net Framework`的都可以使用路由。如WebForms,API等,但是Asp.Net MVC 和路由密切相关。
 
 图：路由关系图
 
@@ -14,39 +14,44 @@
 
 >Asp.Net是一个管道模型，一个Http请求先经过`HttpModule`，再通过`HttpHandlerFactory`，创建一个对应的`HttpHandler`处理对应的请求。所以对Asp.Net的所有的扩展也是通过注册这些管道事件来实现的。因为路由是建立在`Asp.Net Framework`之上的，所以路由也是注册实现了管道事件。但是是通过注册`HttpModule`的`PostResolveRequestCache`事件来实现的。
 
+![管道模型](imgs/pipeline1.png)
+
+
 #### 为什么不注册HttpHandler来实现呢？
 
 因为：
 
-> 如果把请求的管道模型比作一个运行的火车的话，`HttpHandler`是请求火车的目的地。`HttpModule`是一个沿途的站点。
+> 如果把请求的管道模型比作一个运行的火车的话，`HttpHandler`是请求火车的目的地。`HttpModule`是一个沿途的站点，要在终点前分析好这个请求是到哪个目的地。
 > * `HttpHandler`多用来处理响应处理。
 > * `HttpModule`多用来处理通用性和响应内容无关的功能。
 
----
 
-![管道模型](imgs/pipeline1.png)
+小结：
 
 **路由就是一个实现了`IHttpModule`接口的`UrlRoutingModule`的`HttpModule`,在管道事件中拦截请求，分析Url，匹配路由，再交给`HttpHandler`处理的过程。**
 
+---
+
 ### 路由如何拦截请求 
 
-路由系统中是通过实现了接口`IHttpModule`的`UrlRoutingModule`类来注册管道事件，在该类中实现了路由的功能。
+上述认识到路由是通过实现了接口`IHttpModule`的类--`UrlRoutingModule`来注册管道事件，在该类中实现了请求拦截，路由匹配，创建指定HttpHandler。
 
-所以路由组件中`UrlRoutingModule`是关键。
+所以路由组件中`UrlRoutingModule`就是是关键。
 
 [UrlRoutingModule源码在线查看](http://referencesource.microsoft.com/#System.Web/Routing/UrlRoutingModule.cs,9b4115ad16e4f4a1)
 
-通过代码可以发现。`UrlRoutingModule`注册了`PostResolveRequestCache`事件,因为在管道事件中`PostMapRequestHandler`事件是把请求交给HttpHandler来处理。所以必须要在交给HttpHandler处理之前，解析Url路由。而`PostResolveRequestCache`在该事件之前。([Asp.Net管道事件](https://msdn.microsoft.com/en-us/library/ms178473.aspx))
+通过该类的源代码可以发现。`UrlRoutingModule`注册了`PostResolveRequestCache`事件。注册该事件，纯粹是因为要在`HttpHandler`目的地创建之前执行路由。因为在管道事件中`PostMapRequestHandler`事件是把请求交给`HttpHandler`来处理。而`PostResolveRequestCache`在该事件之前。([Asp.Net管道事件](https://msdn.microsoft.com/en-us/library/ms178473.aspx))
 
 ```CSharp
     //UrlRoutingModule源码
  ...
+ //注册事件PostResolveRequestCache 
  application.PostResolveRequestCache += OnApplicationPostResolveRequestCache;
  ...
 
 ```
 
-在`UrlRoutingModule`代码中。通过本地的一个`PostResolveRequestCache`方法，实现HttpHandler的映射。
+查看`UrlRoutingModule`代码，发现该类的一个`PostResolveRequestCache`方法，实现了路由的工作。
 
 ```CSharp
     // UrlRoutingModule的本地方法
@@ -108,23 +113,29 @@
 
 ```
 
+即：
+
+1. 根据`HttpContext`，路由匹配规则，匹配一个`RouteData`对象。
+2. 调用`RouteData`对象的`RouteHandler`获取`IRouteHandler`的`MVCRouteHandler`。
+3. 由匹配的`RouteData`和`HttpContext`创建`RequestContext`
+4. 由2的`MVCRouteHandler`和3的`RequestContext`创建`IHttpHandler`-`MVCHandler`.
+5. `HttpHandler`管道事件执行。
+
+流程如下图所示：
+
+![流程](imgs/route2.png)
+
+之后`HttpHandler`的运行可以参考如下整个生命周期：
+
 Asp.Net MVC 生命周期图：
 
 ![生命周期图](imgs/life1.png)
-
-结合生命周期图和`UrlRoutingModule`的代码可以看出路由的工作过程：
-
-1. 根据HttpContext，路由匹配规则，匹配一个RouteData对象。
-2. 调用RouteData对象的RouteHandler获取IRouteHandler的MVCRouteHandler。
-3. 获取一个由匹配的RouteData和HttpContext创建的RequestContext
-4. 由在2种的获取的IRouteHandler对象结合3中的RequesetContext创建IHttpHandler-MVCHandler.
-5. HttpHandler管道事件执行。
 
 ---
 
 ## 路由的使用
 
-`Global.asax`包含了Asp.Net应用程序生命周期的管道事件。实现`HttpApplication`的方法或事件，会在对应的生命周期中调用。在`Global.asax`文件中`MVCApplication`类中实现`Application_Start()`方法会在应用程序启动时执行，且只执行一次。所以在该方法中注册路由。
+`Global.asax`的`MVCApplication`是管理Asp.Net应用程序生命周期的管道事件的类。在类中实现管道事件或方法会在对应的管道事件中调用。
 
 ---
 
@@ -238,6 +249,7 @@ public class HomeController :Controller
 **在同一个Controller下是不允许有Action重载的**
 
 如：
+
 ```CSharp
 public class HomeController :Controller
 {
@@ -261,6 +273,7 @@ public class HomeController :Controller
 路由引擎在定位路由时，会遍历路由集合中的所有路由。只要发现了一个匹配的路由，会立即停止搜索。所以定义路由一定要注意路由的先后循序。一般是越是精确的放在前面。
 
 如：有一个如下的路由配置
+
 ```CSharp
 routes.MapRoute{
     name:  "one",
@@ -297,6 +310,7 @@ routes.MapRoute{
 除了使用正则表达式来约束路由，我们还可以通过继承IRouteConstraint接口自定义约束规则
 
 如：
+
 ```CSharp
 public class MyRouteConstraint : IRouteConstraint
 {
