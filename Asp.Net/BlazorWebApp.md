@@ -17,7 +17,7 @@ Web开发在很多方面都有了改进，但是构建现代Web应用程序仍�
 
 **Browser+Razor=Blazor!**
 
-Blazor基于现有的Web技术，如HTML和CSS，但是使用C＃和Razor语法代替JavaScript来构建可组合的Web UI。请注意，这不是在浏览器中部署现有UWP或Xamarin移动应用程序的方式。可以在[Steve Sanderson’s prototype demo at NDC Oslo](https://www.youtube.com/watch?v=MiLAE6HMr10&feature=youtu.be&t=31m45s)中查看运行起来的效果，或者在[simple Blazor app running in Azure]https://blazor-demo.azurewebsites.net/)中尝试构建。
+Blazor基于现有的Web技术，如HTML和CSS，但是使用C＃和Razor语法代替JavaScript来构建可组合的Web UI。请注意，这不是在浏览器中部署现有UWP或Xamarin移动应用程序的方式。可以在[Steve Sanderson’s prototype demo at NDC Oslo](https://www.youtube.com/watch?v=MiLAE6HMr10&feature=youtu.be&t=31m45s)中查看运行起来的效果，或者在[simple Blazor app running in Azure](https://blazor-demo.azurewebsites.net/)中尝试构建。
 
 Blazor将具有现代Web框架的所有功能，包括：
 
