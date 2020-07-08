@@ -5,9 +5,13 @@
       * [2020](日志.md)
   * [Asp.Net]()
         * [检索实操](Asp.Net/ajax.md)
+        
         * [asp.netmvc路由](Asp.Net/asp.net mvc 路由.md)
+        
         * [BlazorWebApp](Asp.Net/BlazorWebApp.md)
+        
         * [Cookie](Asp.Net/Cookie.md)
+        
         * [Forms身份验证](Asp.Net/Forms身份验证.md)
         * [HtmlHelper](Asp.Net/HtmlHelper.md)
         * [Http.TCP,Socket,WebSocket](Asp.Net/Http.TCP,Socket,WebSocket.md)
