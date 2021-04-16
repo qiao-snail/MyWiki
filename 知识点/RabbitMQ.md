@@ -56,7 +56,10 @@ Channel允许可以频繁的开关，但是建议Channel也保持长活
 主要是使用BackgroundService，后台来接收消息
 
 [Publish-Demo](https://www.c-sharpcorner.com/article/publishing-rabbitmq-message-in-asp-net-core/)
-主要是使用了DefaultObjectPool<T>来定义了一个Chanel的对象管理池来publish message
+主要是使用了DefaultObjectPool<T>来定义了一个Chanel的对象管理池来publish message 
+
+
+
 
 
 
