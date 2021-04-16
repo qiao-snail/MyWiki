@@ -29,6 +29,7 @@ conditionA-->input2[队列]
 1. 将其投递模式选项设置为2
 2. 发送到持久化的交换器
 3. 到持久化的队列
+4. 4
 
 ### Connection和Channel
 
