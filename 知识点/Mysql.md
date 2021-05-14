@@ -14,4 +14,4 @@
 * mysql中使用utf8时，应该设置字符为utf8mb4
 * MySQL默认情况下是否区分大小写，使用show Variables like '%table_names'查看lower_case_table_names的值，0代表区分，1代表不区分。
 
-* Mysql的主键建议使用UUID，利于分库分表，且使用有序的UUID来提升性能
+* Mysql的主键建议使用UUID，利于分库分表，且使用有序的UUID来提升性能(`UUID_TO_BIN`)
